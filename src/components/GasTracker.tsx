@@ -6,7 +6,7 @@ import { Fuel, TrendingUp, Clock, Zap } from 'lucide-react';
 import { formatGasPrice } from '../utils/format';
 
 const GasTracker = () => {
-  const { data: feeData, refetch } = useFeeData({ watch: true });
+  const { data: feeData, refetch } = useFeeData();
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
   useEffect(() => {

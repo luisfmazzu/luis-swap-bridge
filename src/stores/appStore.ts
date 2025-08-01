@@ -12,7 +12,7 @@ interface AppStore extends Omit<AppState, 'isConnected' | 'address' | 'chainId' 
 
 export const useAppStore = create<AppStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // State
       recentTips: [],
       selectedCreator: null,

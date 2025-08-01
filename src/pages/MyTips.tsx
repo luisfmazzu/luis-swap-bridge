@@ -4,13 +4,11 @@ import { useAccount } from 'wagmi';
 import { 
   Calendar,
   ExternalLink,
-  Filter,
   Search,
   TrendingUp,
   Heart,
   Clock,
   CheckCircle,
-  AlertCircle,
   Wallet
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -112,8 +110,7 @@ const MyTips = () => {
       y: 0,
       opacity: 1,
       transition: {
-        duration: 0.6,
-        ease: "easeOut"
+        duration: 0.6
       }
     }
   };

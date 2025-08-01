@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../stores/appStore';
 import { formatAddress, formatETH, validateETHAmount } from '../utils/format';
-import { Creator } from '../types';
 
 const TipModal = () => {
   const { address, isConnected } = useAccount();
