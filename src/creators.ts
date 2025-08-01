@@ -1,0 +1,58 @@
+import { Creator } from './types';
+
+export const creators: Creator[] = [
+  {
+    id: '1',
+    name: 'Alice Digital',
+    description: 'Digital artist creating stunning NFT artwork',
+    address: '0x742d35Cc5C59B72CD0F1D2a9b1A4f6e5e8E6fF2A',
+    avatar: '🎨',
+    totalTips: '0',
+    tipCount: 0,
+  },
+  {
+    id: '2',
+    name: 'Bob Musician',
+    description: 'Indie musician and songwriter',
+    address: '0x8ba1f109551bD432803012645Hac136c82C0c1d',
+    avatar: '🎵',
+    totalTips: '0',
+    tipCount: 0,
+  },
+  {
+    id: '3',
+    name: 'Carol Streamer',
+    description: 'Gaming streamer and content creator',
+    address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+    avatar: '🎮',
+    totalTips: '0',
+    tipCount: 0,
+  },
+  {
+    id: '4',
+    name: 'Dave Writer',
+    description: 'Technical writer and blockchain educator',
+    address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+    avatar: '📝',
+    totalTips: '0',
+    tipCount: 0,
+  },
+  {
+    id: '5',
+    name: 'Eve Developer',
+    description: 'Open source developer and Web3 builder',
+    address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
+    avatar: '💻',
+    totalTips: '0',
+    tipCount: 0,
+  },
+  {
+    id: '6',
+    name: 'Frank Photographer',
+    description: 'Professional photographer sharing travel content',
+    address: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
+    avatar: '📸',
+    totalTips: '0',
+    tipCount: 0,
+  },
+];
