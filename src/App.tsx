@@ -3,6 +3,7 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import MyTips from './pages/MyTips';
 import Header from './components/Header';
+import TipModal from './components/TipModal';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/my-tips" element={<MyTips />} />
         </Routes>
+        <TipModal />
       </div>
     </Router>
   );
