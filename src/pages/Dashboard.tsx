@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
-import { Search, Filter, Grid, List } from 'lucide-react';
+import { Search, Filter, Grid, List, Loader2 } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import WalletInfo from '../components/WalletInfo';
@@ -10,17 +10,26 @@ import TipAnalytics from '../components/TipAnalytics';
 import RecentActivity from '../components/RecentActivity';
 import CreatorLeaderboard from '../components/CreatorLeaderboard';
 import CreatorCard from '../components/CreatorCard';
-import { creators } from '../creators';
+import { useCreators, useCreatorSearch } from '../hooks/useCreators';
 
 const Dashboard = () => {
   const { isConnected } = useAccount();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
-  const filteredCreators = creators.filter(creator =>
-    creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    creator.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Use TanStack Query hooks for data fetching
+  const { data: allCreators, isLoading: isLoadingCreators, error: creatorsError } = useCreators();
+  const { data: searchResults, isLoading: isSearching } = useCreatorSearch(searchTerm, searchTerm.length > 0);
+  
+  // Use search results if searching, otherwise use all creators
+  const filteredCreators = useMemo(() => {
+    if (searchTerm.length > 0) {
+      return searchResults || [];
+    }
+    return allCreators || [];
+  }, [searchTerm, searchResults, allCreators]);
+  
+  const isLoading = isLoadingCreators || (searchTerm.length > 0 && isSearching);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -164,24 +173,49 @@ const Dashboard = () => {
               ))}
             </motion.div>
 
+            {/* Loading State */}
+            {isLoading && (
+              <div className="text-center py-12">
+                <Loader2 className="h-12 w-12 text-indigo-400 mx-auto mb-4 animate-spin" />
+                <p className="text-white/60 text-lg mb-2">
+                  {searchTerm ? 'Searching creators...' : 'Loading creators...'}
+                </p>
+              </div>
+            )}
+
+            {/* Error State */}
+            {creatorsError && !isLoading && (
+              <div className="text-center py-12">
+                <div className="text-red-400 mb-4">⚠️</div>
+                <p className="text-red-400 text-lg mb-2">
+                  Failed to load creators
+                </p>
+                <p className="text-white/40">
+                  Please try again later
+                </p>
+              </div>
+            )}
+
             {/* Empty State */}
-            {filteredCreators.length === 0 && (
+            {!isLoading && !creatorsError && filteredCreators.length === 0 && (
               <div className="text-center py-12">
                 <Search className="h-12 w-12 text-white/20 mx-auto mb-4" />
                 <p className="text-white/60 text-lg mb-2">
-                  No creators found
+                  {searchTerm ? 'No creators found' : 'No creators available'}
                 </p>
                 <p className="text-white/40">
-                  Try adjusting your search terms
+                  {searchTerm ? 'Try adjusting your search terms' : 'Check back later for new creators'}
                 </p>
               </div>
             )}
 
             {/* Creator Count */}
-            {filteredCreators.length > 0 && (
+            {!isLoading && filteredCreators.length > 0 && (
               <div className="mt-6 pt-4 border-t border-white/10">
                 <p className="text-sm text-white/60 text-center">
-                  Showing {filteredCreators.length} of {creators.length} creators
+                  Showing {filteredCreators.length} 
+                  {allCreators && ` of ${allCreators.length}`} creators
+                  {searchTerm && ` matching "${searchTerm}"`}
                 </p>
               </div>
             )}

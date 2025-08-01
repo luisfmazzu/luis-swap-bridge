@@ -35,8 +35,9 @@ This platform enables users to support their favorite creators with cryptocurren
 - **React Toastify** for user notifications
 
 ### State Management & Data
-- **Zustand** for lightweight, persistent state management
-- **React Query** (via Wagmi) for efficient data fetching and caching
+- **TanStack Query (React Query)** for advanced data fetching, caching, and synchronization
+- **Zustand** for lightweight, persistent local state management
+- **Custom Query Hooks** for specialized data operations and API integration
 - **LocalStorage** persistence for user preferences and history
 
 ### Development Tools
@@ -57,6 +58,21 @@ This project demonstrates comprehensive use of Wagmi's React hooks and utilities
 - **Transaction Receipts**: Confirmation and receipt validation
 
 For detailed implementation specifics, including exact hook usage, parameters, and code locations, see [Wagmi_Implementation.md](./Wagmi_Implementation.md).
+
+## 🔄 TanStack Query Integration
+
+This project leverages TanStack Query (React Query) for sophisticated data management beyond Wagmi's built-in capabilities:
+
+- **Advanced Caching Strategies**: Multi-tiered cache with different stale times for various data types
+- **Real-time Updates**: Background refetching for live gas prices and tip analytics
+- **Optimistic Updates**: Instant UI updates with automatic rollback on errors
+- **Infinite Queries**: Efficient pagination for large datasets like transaction history
+- **Query Invalidation**: Smart cache invalidation patterns for data consistency
+- **Error Handling**: Comprehensive error boundaries with retry logic and fallback states
+
+Key implementations include creator search with debouncing, real-time gas price monitoring, user analytics with monthly trends, and transaction history with infinite scroll.
+
+For detailed TanStack Query patterns, hooks usage, and optimization strategies, see [TanStack_Implementation.md](./TanStack_Implementation.md).
 
 ## 🚀 Getting Started
 

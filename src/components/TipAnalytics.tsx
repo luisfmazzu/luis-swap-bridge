@@ -12,8 +12,9 @@ import {
   Filler,
 } from 'chart.js';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { TrendingUp } from 'lucide-react';
-import { useAppStore } from '../stores/appStore';
+import { TrendingUp, Loader2, AlertCircle } from 'lucide-react';
+import { useCurrentUserAnalytics } from '../hooks/useAnalytics';
+import { useRecentTips } from '../hooks/useTips';
 
 ChartJS.register(
   CategoryScale,
@@ -27,37 +28,27 @@ ChartJS.register(
 );
 
 const TipAnalytics = () => {
-  const recentTips = useAppStore(state => state.recentTips);
+  const { data: userAnalytics, isLoading: isLoadingAnalytics, error: analyticsError } = useCurrentUserAnalytics();
+  const { data: recentTips, isLoading: isLoadingTips } = useRecentTips();
 
   const chartData = useMemo(() => {
-    // Get tips from last 24 hours grouped by hour
-    const now = new Date();
-    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    const hourlyData = Array.from({ length: 24 }, (_, i) => {
-      const hour = new Date(last24Hours.getTime() + i * 60 * 60 * 1000);
-      const tips = recentTips.filter(tip => {
-        const tipTime = new Date(tip.timestamp);
-        return tipTime >= hour && tipTime < new Date(hour.getTime() + 60 * 60 * 1000);
-      });
-      
-      const totalAmount = tips.reduce((sum, tip) => sum + parseFloat(tip.amount), 0);
-      
-      return {
-        hour: hour.getHours(),
-        amount: totalAmount,
-        count: tips.length,
-      };
-    });
+    if (!userAnalytics?.monthlyStats) {
+      return null;
+    }
 
-    const labels = hourlyData.map(data => `${data.hour}:00`);
-    const amounts = hourlyData.map(data => data.amount);
+    // Use the last 12 months of data for the chart
+    const labels = userAnalytics.monthlyStats.map(stat => {
+      const date = new Date(stat.month + '-01');
+      return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    });
+    
+    const amounts = userAnalytics.monthlyStats.map(stat => parseFloat(stat.volume));
 
     return {
       labels,
       datasets: [
         {
-          label: 'Tips (ETH)',
+          label: 'Monthly Tips (ETH)',
           data: amounts,
           borderColor: 'rgb(99, 102, 241)',
           backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -72,7 +63,7 @@ const TipAnalytics = () => {
         },
       ],
     };
-  }, [recentTips]);
+  }, [userAnalytics]);
 
   const options = {
     responsive: true,
@@ -124,13 +115,7 @@ const TipAnalytics = () => {
     },
   };
 
-  const totalTips = recentTips.length;
-  const totalAmount = recentTips.reduce((sum, tip) => sum + parseFloat(tip.amount), 0);
-  const last24HoursTips = recentTips.filter(tip => {
-    const tipTime = new Date(tip.timestamp);
-    const now = new Date();
-    return tipTime >= new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  });
+  const isLoading = isLoadingAnalytics || isLoadingTips;
 
   return (
     <Card className="bg-white/5 backdrop-blur-sm border-white/10">
@@ -141,37 +126,85 @@ const TipAnalytics = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white">{totalTips}</div>
-            <div className="text-xs text-white/60">Total Tips</div>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 text-indigo-400 animate-spin mr-3" />
+            <p className="text-white/60">Loading analytics...</p>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white">{totalAmount.toFixed(4)}</div>
-            <div className="text-xs text-white/60">Total ETH</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white">{last24HoursTips.length}</div>
-            <div className="text-xs text-white/60">Last 24h</div>
-          </div>
-        </div>
+        )}
 
-        {/* Chart */}
-        <div className="h-64">
-          {totalTips > 0 ? (
-            <Line data={chartData} options={options} />
-          ) : (
-            <div className="flex items-center justify-center h-full">
+        {/* Error State */}
+        {analyticsError && !isLoading && (
+          <div className="flex items-center justify-center py-8">
+            <AlertCircle className="h-8 w-8 text-red-400 mr-3" />
+            <div className="text-center">
+              <p className="text-red-400 font-medium">Failed to load analytics</p>
+              <p className="text-white/60 text-sm">Please try again later</p>
+            </div>
+          </div>
+        )}
+
+        {/* Content */}
+        {!isLoading && !analyticsError && userAnalytics && (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="text-center">
-                <TrendingUp className="h-12 w-12 text-white/20 mx-auto mb-4" />
-                <p className="text-white/60 text-sm">
-                  No tips yet. Start tipping creators to see analytics!
-                </p>
+                <div className="text-2xl font-bold text-white">{userAnalytics.tipCount}</div>
+                <div className="text-xs text-white/60">Total Tips</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">{parseFloat(userAnalytics.totalTipped).toFixed(4)}</div>
+                <div className="text-xs text-white/60">Total ETH</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">{userAnalytics.last30Days.tips}</div>
+                <div className="text-xs text-white/60">Last 30d</div>
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Additional Stats Row */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="text-center p-3 bg-white/5 rounded-lg border border-white/10">
+                <div className="text-lg font-bold text-white">{userAnalytics.uniqueCreators}</div>
+                <div className="text-xs text-white/60">Creators Supported</div>
+              </div>
+              <div className="text-center p-3 bg-white/5 rounded-lg border border-white/10">
+                <div className="text-lg font-bold text-white">{parseFloat(userAnalytics.averageTip).toFixed(4)}</div>
+                <div className="text-xs text-white/60">Avg Tip Size</div>
+              </div>
+            </div>
+
+            {/* Chart */}
+            <div className="h-64">
+              {chartData ? (
+                <Line data={chartData} options={options} />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <TrendingUp className="h-12 w-12 text-white/20 mx-auto mb-4" />
+                    <p className="text-white/60 text-sm">
+                      No tip history available for chart
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Empty State for not connected users */}
+        {!isLoading && !analyticsError && !userAnalytics && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <TrendingUp className="h-12 w-12 text-white/20 mx-auto mb-4" />
+              <p className="text-white/60 text-sm">
+                Connect your wallet to see personal analytics
+              </p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

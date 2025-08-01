@@ -1,40 +1,51 @@
-import { useEffect, useState } from 'react';
-import { useFeeData } from 'wagmi';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Fuel, TrendingUp, Clock, Zap } from 'lucide-react';
+import { Fuel, TrendingUp, Clock, Zap, AlertTriangle } from 'lucide-react';
 import { formatGasPrice } from '../utils/format';
+import { useEnhancedGasData, useCombinedGasData } from '../hooks/useGasData';
 
 const GasTracker = () => {
-  const { data: feeData, refetch } = useFeeData();
-  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const { data: enhancedGasData, isLoading, isError, error } = useEnhancedGasData();
+  const { data: combinedGasData } = useCombinedGasData();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetch();
-      setLastUpdate(new Date());
-    }, 30000); // Update every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [refetch]);
-
-  const gasPrice = feeData?.gasPrice || BigInt(0);
-  const slowGas = gasPrice;
-  const averageGas = (gasPrice * BigInt(120)) / BigInt(100); // 20% higher
-  const fastGas = (gasPrice * BigInt(150)) / BigInt(100); // 50% higher
-
-  const gasLevels = [
+  // Use enhanced data if available, fallback to basic gas calculations
+  const gasLevels = enhancedGasData && combinedGasData ? [
     {
       name: 'Slow',
-      price: formatGasPrice(slowGas),
+      price: formatGasPrice(combinedGasData.recommendations.slow.gasPrice),
+      icon: Clock,
+      color: 'text-yellow-400',
+      bgColor: 'bg-yellow-500/20',
+      time: combinedGasData.recommendations.slow.estimatedTime,
+    },
+    {
+      name: 'Standard',
+      price: formatGasPrice(combinedGasData.recommendations.standard.gasPrice),
+      icon: TrendingUp,
+      color: 'text-orange-400',
+      bgColor: 'bg-orange-500/20',
+      time: combinedGasData.recommendations.standard.estimatedTime,
+    },
+    {
+      name: 'Fast',
+      price: formatGasPrice(combinedGasData.recommendations.fast.gasPrice),
+      icon: Zap,
+      color: 'text-green-400',
+      bgColor: 'bg-green-500/20',
+      time: combinedGasData.recommendations.fast.estimatedTime,
+    },
+  ] : [
+    {
+      name: 'Slow',
+      price: 'Loading...',
       icon: Clock,
       color: 'text-yellow-400',
       bgColor: 'bg-yellow-500/20',
       time: '~5 min',
     },
     {
-      name: 'Average',
-      price: formatGasPrice(averageGas),
+      name: 'Standard',
+      price: 'Loading...',
       icon: TrendingUp,
       color: 'text-orange-400',
       bgColor: 'bg-orange-500/20',
@@ -42,7 +53,7 @@ const GasTracker = () => {
     },
     {
       name: 'Fast',
-      price: formatGasPrice(fastGas),
+      price: 'Loading...',
       icon: Zap,
       color: 'text-green-400',
       bgColor: 'bg-green-500/20',
@@ -50,16 +61,39 @@ const GasTracker = () => {
     },
   ];
 
+  // Get network congestion color
+  const getCongestionColor = (congestion?: 'low' | 'medium' | 'high') => {
+    switch (congestion) {
+      case 'low': return 'text-green-400';
+      case 'medium': return 'text-yellow-400';
+      case 'high': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
+  };
+
   return (
     <Card className="bg-white/5 backdrop-blur-sm border-white/10">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center space-x-2 text-white">
-          <Fuel className="h-5 w-5 text-indigo-400" />
-          <span>Gas Tracker</span>
+        <CardTitle className="flex items-center justify-between text-white">
+          <div className="flex items-center space-x-2">
+            <Fuel className="h-5 w-5 text-indigo-400" />
+            <span>Gas Tracker</span>
+          </div>
+          {enhancedGasData && (
+            <div className={`flex items-center space-x-1 text-xs ${getCongestionColor(enhancedGasData.networkCongestion)}`}>
+              <div className="w-2 h-2 rounded-full bg-current animate-pulse"></div>
+              <span className="capitalize">{enhancedGasData.networkCongestion}</span>
+            </div>
+          )}
         </CardTitle>
-        <p className="text-xs text-white/60">
-          Updated {lastUpdate.toLocaleTimeString()}
-        </p>
+        {enhancedGasData?.historicalData && (
+          <p className="text-xs text-white/60">
+            24h avg: {enhancedGasData.historicalData.avgGasPrice24h} gwei
+            <span className={`ml-2 ${enhancedGasData.historicalData.trend === 'up' ? 'text-red-400' : enhancedGasData.historicalData.trend === 'down' ? 'text-green-400' : 'text-gray-400'}`}>
+              {enhancedGasData.historicalData.trend === 'up' ? '↗' : enhancedGasData.historicalData.trend === 'down' ? '↘' : '→'}
+            </span>
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -90,10 +124,18 @@ const GasTracker = () => {
           ))}
         </div>
         
-        {!feeData && (
+        {isLoading && !enhancedGasData && (
           <div className="text-center py-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-400 mx-auto mb-2"></div>
             <p className="text-sm text-white/60">Loading gas prices...</p>
+          </div>
+        )}
+
+        {isError && (
+          <div className="text-center py-4">
+            <AlertTriangle className="h-6 w-6 text-red-400 mx-auto mb-2" />
+            <p className="text-sm text-red-400">Failed to load gas data</p>
+            <p className="text-xs text-white/60 mt-1">Using fallback prices</p>
           </div>
         )}
       </CardContent>
