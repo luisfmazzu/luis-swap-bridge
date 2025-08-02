@@ -1,31 +1,33 @@
-# Decentralized Tipping Platform
+# LuiSwap - Multi-Chain DEX Platform
 
-A modern, beautiful Web3 application for sending cryptocurrency tips directly to creators using the Ethereum blockchain. Built with React, TypeScript, and Wagmi for seamless blockchain integration.
+A modern, production-ready decentralized exchange (DEX) platform supporting multi-chain token swapping, cross-chain bridging, and portfolio management. Built with Next.js, TypeScript, Wagmi, and Turnkey for seamless Web3 integration across 6 major blockchains.
 
 ## 🎯 Project Goal
 
-This platform enables users to support their favorite creators with cryptocurrency tips in a decentralized, transparent, and direct manner. By leveraging blockchain technology, tips go directly to creators without intermediaries, ensuring maximum value transfer and transparency.
+LuiSwap provides users with a comprehensive DeFi platform for trading, bridging, and managing digital assets across multiple blockchain networks. By leveraging cutting-edge Web3 technologies and embedded wallet solutions, users can access optimal trading routes, cross-chain transfers, and real-time portfolio tracking in a single, professional interface.
 
 ### Key Features
 
-- **Direct Creator Support**: Send ETH tips directly to creator wallets
-- **Transparent Transactions**: All tips are recorded on the blockchain
-- **Real-time Tracking**: Monitor transaction status and gas fees
-- **Beautiful UI/UX**: Mobile-responsive design with smooth animations
-- **Transaction History**: Complete record of all tips sent and received
-- **Multi-wallet Support**: Compatible with MetaMask, WalletConnect, and more
+- **Multi-Chain Trading**: Swap tokens across Ethereum, Polygon, BSC, Arbitrum, Optimism, and Avalanche
+- **Cross-Chain Bridging**: Seamless asset transfers between blockchains via Stargate Finance
+- **Portfolio Management**: Real-time multi-chain balance tracking with USD valuations
+- **Embedded Wallets**: Turnkey-powered wallet integration for seamless user onboarding
+- **Live Monitoring**: Real-time transaction feeds and network statistics
+- **Professional UI/UX**: Mobile-responsive design with sophisticated animations
 
 ## 🛠️ Technologies & Techniques
 
 ### Frontend Framework
-- **React 18** with TypeScript for type-safe development
-- **Vite** as the build tool for fast development and optimized builds
-- **React Router** for client-side navigation
+- **Next.js 15** with App Router for production-ready React applications
+- **TypeScript** for type-safe development across the entire stack
+- **React 18** with Server Components for optimal performance
 
 ### Web3 Integration
-- **Wagmi** - Comprehensive React hooks for Ethereum development
-- **Viem** - Type-safe Ethereum library for transaction handling
-- **Ethereum Sepolia Testnet** for safe testing and development
+- **Wagmi v2** - Comprehensive React hooks for multi-chain Web3 development
+- **Viem** - Type-safe Ethereum library for transaction handling and contract interactions
+- **Turnkey SDK** - Embedded wallet infrastructure for seamless user onboarding
+- **1inch API** - DEX aggregation for optimal swap routes and pricing
+- **Stargate Finance** - Cross-chain bridging protocol integration
 
 ### UI/UX Technologies
 - **Tailwind CSS** for utility-first styling
@@ -36,9 +38,9 @@ This platform enables users to support their favorite creators with cryptocurren
 
 ### State Management & Data
 - **TanStack Query (React Query)** for advanced data fetching, caching, and synchronization
-- **Zustand** for lightweight, persistent local state management
-- **Custom Query Hooks** for specialized data operations and API integration
-- **LocalStorage** persistence for user preferences and history
+- **React Hooks** for component-level state management
+- **Custom Web3 Hooks** for specialized blockchain operations and real-time updates
+- **Local Storage** persistence for user preferences and session data
 
 ### Development Tools
 - **TypeScript** for static type checking
@@ -47,60 +49,71 @@ This platform enables users to support their favorite creators with cryptocurren
 
 ## 🔗 Wagmi Integration
 
-This project demonstrates comprehensive use of Wagmi's React hooks and utilities for Web3 development. Wagmi provides type-safe, efficient hooks for:
+This project demonstrates comprehensive use of Wagmi v2's React hooks and utilities for multi-chain Web3 development. Wagmi provides type-safe, efficient hooks for:
 
-- **Wallet Connection Management**: Multi-wallet support with connection state
-- **Account Management**: User account data and authentication
-- **Transaction Handling**: Sending transactions with real-time status
-- **Balance Queries**: Real-time ETH balance monitoring  
-- **Gas Fee Tracking**: Dynamic gas price monitoring and estimation
-- **Network Management**: Sepolia testnet configuration and switching
-- **Transaction Receipts**: Confirmation and receipt validation
+- **Multi-Chain Wallet Management**: Support for MetaMask, WalletConnect, Coinbase Wallet across 6 blockchains
+- **Cross-Chain Account Management**: Unified account data and authentication across networks
+- **Transaction Handling**: Multi-chain transaction execution with real-time status tracking
+- **Token Balance Queries**: Real-time balance monitoring across all supported chains
+- **Gas Fee Optimization**: Dynamic gas price monitoring and transaction cost estimation
+- **Network Switching**: Seamless chain switching and configuration management
+- **Contract Interactions**: ERC20 token approvals, transfers, and smart contract calls
 
 For detailed implementation specifics, including exact hook usage, parameters, and code locations, see [Wagmi_Implementation.md](./Wagmi_Implementation.md).
 
-## 🔄 TanStack Query Integration
+## 🔐 Turnkey Integration
 
-This project leverages TanStack Query (React Query) for sophisticated data management beyond Wagmi's built-in capabilities:
+This project leverages Turnkey's embedded wallet infrastructure for seamless user onboarding and wallet management:
 
-- **Advanced Caching Strategies**: Multi-tiered cache with different stale times for various data types
-- **Real-time Updates**: Background refetching for live gas prices and tip analytics
-- **Optimistic Updates**: Instant UI updates with automatic rollback on errors
-- **Infinite Queries**: Efficient pagination for large datasets like transaction history
-- **Query Invalidation**: Smart cache invalidation patterns for data consistency
-- **Error Handling**: Comprehensive error boundaries with retry logic and fallback states
+- **Embedded Wallet Creation**: Programmatic wallet generation without seed phrases
+- **Secure Key Management**: Hardware-grade security with distributed key generation
+- **Seamless User Experience**: Email-based authentication with instant wallet access
+- **Multi-Chain Support**: Single wallet interface across all supported blockchains
+- **Developer-Friendly APIs**: Simple integration with existing Web3 applications
+- **Enterprise Security**: SOC 2 Type 2 certified infrastructure with institutional-grade security
 
-Key implementations include creator search with debouncing, real-time gas price monitoring, user analytics with monthly trends, and transaction history with infinite scroll.
+Key implementations include passwordless authentication, automatic wallet provisioning, cross-chain transaction signing, and secure key recovery mechanisms.
 
-For detailed TanStack Query patterns, hooks usage, and optimization strategies, see [TanStack_Implementation.md](./TanStack_Implementation.md).
+Turnkey enables users to interact with DeFi protocols without complex wallet setup, making Web3 accessible to mainstream users while maintaining the security and decentralization principles of blockchain technology.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 18+ 
-- npm or yarn
-- MetaMask or compatible Web3 wallet
-- Sepolia testnet ETH for testing
+- npm, yarn, or pnpm
+- MetaMask, WalletConnect, or compatible Web3 wallet
+- Turnkey API keys (for embedded wallet functionality)
+- Test tokens across supported networks
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/luisfmazzu/web3-react-wagmi.git
-cd web3-react-wagmi
+git clone https://github.com/luisfmazzu/luis-swap-bridge.git
+cd luis-swap-bridge/luiswap
 ```
 
 2. Install dependencies:
 ```bash
 npm install
+# or
+yarn install
+# or
+pnpm install
 ```
 
-3. Start the development server:
+3. Configure environment variables:
+```bash
+cp .env.example .env.local
+# Add your API keys and configuration
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:5173](http://localhost:5173) in your browser
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ### Building for Production
 
@@ -111,37 +124,53 @@ npm run build
 ## 🏗️ Project Structure
 
 ```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # ShadCN base components
-│   ├── CreatorCard.tsx # Creator display component
-│   ├── Header.tsx      # Navigation header
-│   ├── TipModal.tsx    # Transaction modal
-│   └── ...             # Other components
-├── pages/              # Route components
-│   ├── Landing.tsx     # Landing page
-│   ├── Dashboard.tsx   # Main dashboard
-│   └── MyTips.tsx      # Transaction history
-├── stores/             # Zustand state management
-├── utils/              # Utility functions
-├── styles/             # Global styles
-└── types.ts            # TypeScript definitions
+luiswap/
+├── app/                    # Next.js App Router pages
+│   ├── page.tsx           # Landing page with DEX preview
+│   ├── swap/              # Token swapping interface
+│   ├── bridge/            # Cross-chain bridging
+│   ├── explore/           # Portfolio dashboard
+│   ├── live-events/       # Real-time transaction monitoring
+│   └── layout.tsx         # Root layout with Web3 providers
+├── components/            # Reusable UI components
+│   ├── ui/               # ShadCN base components
+│   ├── wallet/           # Wallet connection components
+│   ├── swap/             # Trading interface components
+│   ├── bridge/           # Bridging components
+│   ├── portfolio/        # Portfolio management
+│   └── live-events/      # Real-time monitoring
+├── lib/                  # Core libraries and utilities
+│   ├── wagmi-config.ts   # Multi-chain Wagmi configuration
+│   ├── turnkey-config.ts # Embedded wallet setup
+│   ├── constants/        # Token lists and chain configs
+│   └── api/              # External API integrations
+├── hooks/                # Custom React hooks
+│   ├── use-token-balance.ts  # Balance tracking
+│   ├── use-swap.ts          # Swap functionality
+│   ├── use-bridge.ts        # Cross-chain operations
+│   ├── use-portfolio.ts     # Portfolio management
+│   └── use-live-events.ts   # Real-time monitoring
+├── providers/            # React context providers
+└── types/               # TypeScript definitions
 ```
 
-## 🌐 Live Demo Features
+## 🌐 Application Features
 
-1. **Landing Page**: Hero section with animated elements and featured creators
-2. **Dashboard**: Comprehensive view with wallet info, gas tracker, and creator discovery
-3. **Tip Flow**: Multi-step transaction process with real-time feedback
-4. **History**: Complete transaction history with filtering and search
-5. **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+1. **Landing Page**: Modern hero section with integrated DEX preview and multi-chain statistics
+2. **Swap Interface**: Professional trading interface with real-time quotes and slippage protection
+3. **Cross-Chain Bridge**: Seamless asset transfers with multiple route options and fee comparison
+4. **Portfolio Dashboard**: Comprehensive multi-chain balance tracking with USD valuations
+5. **Live Events**: Real-time transaction monitoring with advanced filtering and analytics
+6. **Responsive Design**: Mobile-first design optimized for all device sizes
 
 ## 🧪 Testing
 
-The application is configured for Sepolia testnet testing:
-- Get Sepolia ETH from [Sepolia Faucet](https://sepoliafaucet.com/)
-- Connect your wallet and switch to Sepolia network
-- Start tipping creators with test ETH
+The application supports testing across multiple networks:
+- **Mainnets**: Ethereum, Polygon, BSC, Arbitrum, Optimism, Avalanche
+- **Testnets**: Configure additional testnets as needed
+- **Embedded Wallets**: Test Turnkey integration with email authentication
+- **DEX Functionality**: Use test tokens or small amounts for swap testing
+- **Bridge Operations**: Test cross-chain transfers with minimal amounts
 
 ## 📱 Browser Support
 
@@ -152,10 +181,11 @@ The application is configured for Sepolia testnet testing:
 
 ## 🔐 Security Considerations
 
-- All transactions occur on-chain with full transparency
-- Private keys never leave the user's wallet
-- Smart contract interactions are read-only (simple ETH transfers)
-- Testnet environment for safe testing
+- All transactions occur on-chain with full transparency across multiple blockchains
+- Private keys managed securely through Turnkey's distributed infrastructure
+- Smart contract interactions include token approvals, swaps, and cross-chain operations
+- Multi-signature and hardware-grade security for embedded wallets
+- Production-ready security practices with comprehensive error handling
 
 ## 🤝 Contributing
 
@@ -171,7 +201,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- [Wagmi](https://wagmi.sh/) for excellent Web3 React hooks
+- [Wagmi](https://wagmi.sh/) for excellent multi-chain Web3 React hooks
+- [Turnkey](https://www.turnkey.com/) for embedded wallet infrastructure and security
 - [ShadCN/UI](https://ui.shadcn.com/) for beautiful, accessible components
 - [Viem](https://viem.sh/) for type-safe Ethereum utilities
+- [1inch](https://1inch.io/) for DEX aggregation and optimal swap routing
+- [Stargate Finance](https://stargate.finance/) for cross-chain bridging protocol
+- [Next.js](https://nextjs.org/) for the React framework
 - [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
+- [Framer Motion](https://www.framer.com/motion/) for smooth animations
