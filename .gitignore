@@ -125,6 +125,8 @@ dist/
 # Claude files (per CLAUDE.md instructions)
 claude*
 CLAUDE*
+.claude*
+.mcp.json
 
 # Docs folder (per CLAUDE.md instructions)
 docs/
