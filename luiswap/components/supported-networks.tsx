@@ -1,48 +1,57 @@
 "use client"
 
-import Image from "next/image"
 import { motion } from "framer-motion"
+import { 
+  TokenETH, 
+  TokenMATIC, 
+  TokenARB, 
+  TokenOP, 
+  NetworkBase,
+  TokenAVAX, 
+  TokenBNB, 
+  TokenSOL 
+} from "@web3icons/react"
 
 export function SupportedNetworks() {
   const networks = [
     {
       name: "Ethereum",
-      logo: "https://cryptologos.cc/logos/ethereum-eth-logo.svg",
+      icon: TokenETH,
       color: "from-blue-500/20 to-blue-600/10",
     },
     {
       name: "Polygon",
-      logo: "https://cryptologos.cc/logos/polygon-matic-logo.svg",
+      icon: TokenMATIC,
       color: "from-purple-500/20 to-purple-600/10",
     },
     {
       name: "Arbitrum",
-      logo: "https://cryptologos.cc/logos/arbitrum-arb-logo.svg",
+      icon: TokenARB,
       color: "from-cyan-500/20 to-cyan-600/10",
     },
     {
       name: "Optimism",
-      logo: "https://cryptologos.cc/logos/optimism-ethereum-op-logo.svg",
+      icon: TokenOP,
       color: "from-red-500/20 to-red-600/10",
     },
     {
       name: "Base",
-      logo: "https://github.com/base-org/brand-kit/raw/main/logo/in-product/Base_Network_Logo.svg",
+      icon: NetworkBase,
       color: "from-blue-600/20 to-blue-700/10",
     },
     {
       name: "Avalanche",
-      logo: "https://cryptologos.cc/logos/avalanche-avax-logo.svg",
+      icon: TokenAVAX,
       color: "from-red-600/20 to-red-700/10",
     },
     {
       name: "BSC",
-      logo: "https://cryptologos.cc/logos/bnb-bnb-logo.svg",
+      icon: TokenBNB,
       color: "from-yellow-500/20 to-yellow-600/10",
     },
     {
       name: "Solana",
-      logo: "https://cryptologos.cc/logos/solana-sol-logo.svg",
+      icon: TokenSOL,
       color: "from-green-500/20 to-green-600/10",
     },
   ]
@@ -111,12 +120,9 @@ export function SupportedNetworks() {
                   {/* Logo glow effect */}
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500 scale-150" />
 
-                  <Image
-                    src={network.logo || "/placeholder.svg"}
-                    alt={`${network.name} Logo`}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-contain filter grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500 relative z-10"
+                  <network.icon
+                    size={64}
+                    className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-all duration-500 relative z-10"
                   />
                 </motion.div>
 

@@ -1,13 +1,15 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
+import { Menu, X } from "lucide-react"
 
 export function Header() {
   const pathname = usePathname()
   const isHomePage = pathname === "/"
+  const [showAlert, setShowAlert] = useState(false)
 
   const navItems = [
     { name: "Home", href: "/" },
@@ -16,6 +18,18 @@ export function Header() {
     { name: "Explore", href: "/explore" },
     { name: "Live Events", href: "/live-events" },
   ]
+
+  const showComingSoonAlert = () => {
+    setShowAlert(true)
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      setShowAlert(false)
+    }, 3000)
+  }
+
+  const hideAlert = () => {
+    setShowAlert(false)
+  }
 
   return (
     <header className="w-full py-3 sm:py-4 px-4 sm:px-6">
@@ -51,11 +65,12 @@ export function Header() {
               </Button>
             </Link>
           )}
-          <Link href="https://vercel.com/home" target="_blank" rel="noopener noreferrer">
-            <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-4 lg:px-6 py-2 rounded-full font-medium shadow-sm text-sm lg:text-base">
-              Connect Wallet
-            </Button>
-          </Link>
+          <Button 
+            onClick={showComingSoonAlert}
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-4 lg:px-6 py-2 rounded-full font-medium shadow-sm text-sm lg:text-base"
+          >
+            Connect Wallet
+          </Button>
         </div>
 
         {/* Mobile Menu - Shown below 1200px */}
@@ -89,15 +104,38 @@ export function Header() {
                   </Button>
                 </Link>
               )}
-              <Link href="https://vercel.com/home" target="_blank" rel="noopener noreferrer" className="w-full">
-                <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-2 rounded-full font-medium shadow-sm w-full">
-                  Connect Wallet
-                </Button>
-              </Link>
+              <Button 
+                onClick={showComingSoonAlert}
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-2 rounded-full font-medium shadow-sm w-full"
+              >
+                Connect Wallet
+              </Button>
             </nav>
           </SheetContent>
         </Sheet>
       </div>
+
+      {/* Custom Alert */}
+      {showAlert && (
+        <div className="fixed bottom-4 left-4 z-50 animate-in slide-in-from-left-5 duration-300">
+          <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-4 pr-12 max-w-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+              <div>
+                <p className="text-foreground text-sm font-medium">Coming Soon</p>
+                <p className="text-muted-foreground text-xs mt-1">Wallet connection will be available soon</p>
+              </div>
+              <button
+                onClick={hideAlert}
+                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Close alert"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
