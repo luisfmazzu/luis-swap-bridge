@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/page-header"
 import { PageFooter } from "@/components/page-footer"
 import { DynamicPortfolioOverview } from "@/components/web3"
+import { TokenList } from "@/components/portfolio/token-list"
 
 export default function ExplorePage() {
   return (
@@ -8,8 +9,9 @@ export default function ExplorePage() {
       <PageHeader />
       <main className="flex-1" style={{ backgroundColor: "#151826" }}>
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
             <DynamicPortfolioOverview />
+            <TokenList />
           </div>
         </div>
       </main>

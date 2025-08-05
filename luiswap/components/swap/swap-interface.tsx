@@ -9,12 +9,14 @@ import { ArrowUpDown, Settings, AlertTriangle, Loader2 } from 'lucide-react'
 import { TokenSelector } from './token-selector'
 import { useSwapState } from '@/hooks/use-swap'
 import { useWeb3 } from '@/hooks/use-web3'
+import { useTokenBalance } from '@/hooks/use-token-balance'
 import { DynamicConnectionManager } from '@/components/web3/dynamic-connection-manager'
 import { Badge } from '@/components/ui/badge'
 import { getTokensByChain } from '@/lib/constants/tokens'
+import { getChainName } from '@/lib/constants/chains'
 
 export function SwapInterface() {
-  const { isConnected, chainId } = useWeb3()
+  const { isConnected, chainId, address } = useWeb3()
   const [showSettings, setShowSettings] = useState(false)
   
   const {
@@ -41,11 +43,25 @@ export function SwapInterface() {
     swapError,
   } = useSwapState()
 
+  // Get real token balances
+  const { balance: fromTokenBalance } = useTokenBalance({
+    address,
+    token: fromToken,
+    enabled: isConnected && !!fromToken
+  })
+  
+  const { balance: toTokenBalance } = useTokenBalance({
+    address,
+    token: toToken,  
+    enabled: isConnected && !!toToken
+  })
+
   const availableTokens = chainId ? getTokensByChain(chainId) : []
   
   const handleMaxClick = () => {
-    // In production, this would set to the actual token balance
-    setFromAmount('1000')
+    if (fromTokenBalance && fromTokenBalance.formatted) {
+      setFromAmount(fromTokenBalance.formatted)
+    }
   }
 
   const getButtonText = () => {
@@ -90,7 +106,7 @@ export function SwapInterface() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground">Swap</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {chainId ? `Chain ID: ${chainId}` : 'No chain connected'}
+                  {chainId ? <span><span className="font-bold">{getChainName(chainId)}</span> Network</span> : 'No chain connected'}
                 </p>
               </div>
               <motion.div whileHover={{ rotate: 90 }} transition={{ duration: 0.3 }}>
@@ -179,7 +195,7 @@ export function SwapInterface() {
                 </div>
                 {fromToken && (
                   <div className="text-xs text-muted-foreground">
-                    Balance: {isConnected ? '1,234.56' : '0.00'} {fromToken.symbol}
+                    Balance: {isConnected && fromTokenBalance ? fromTokenBalance.formatted : '0.00'} {fromToken.symbol}
                   </div>
                 )}
               </motion.div>
@@ -232,7 +248,7 @@ export function SwapInterface() {
                 </div>
                 {toToken && (
                   <div className="text-xs text-muted-foreground">
-                    Balance: {isConnected ? '987.65' : '0.00'} {toToken.symbol}
+                    Balance: {isConnected && toTokenBalance ? toTokenBalance.formatted : '0.00'} {toToken.symbol}
                   </div>
                 )}
               </motion.div>

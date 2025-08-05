@@ -29,8 +29,7 @@ interface PortfolioData {
 
 export function usePortfolio() {
   const { address, isConnected } = useAccount()
-  const allTokens = getAllTokens()
-
+  
   return useQuery({
     queryKey: ['portfolio', address],
     queryFn: async (): Promise<PortfolioData> => {
@@ -43,66 +42,57 @@ export function usePortfolio() {
         }
       }
 
-      const portfolioTokens: PortfolioToken[] = []
-      const chainBalances = new Map<number, { usdValue: number; tokenCount: number }>()
+      // For now, return mock data to show the structure
+      // In a real implementation, this would integrate with the useTokenBalance hook
+      // or fetch data from multiple chains
+      const mockTokens: PortfolioToken[] = [
+        {
+          token: {
+            address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A6',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+            chainId: 1
+          },
+          balance: BigInt('1500000000000000000'), // 1.5 ETH
+          formattedBalance: '1.5000',
+          usdValue: '3750.00',
+          chainId: 1,
+          chainName: 'Ethereum'
+        },
+        {
+          token: {
+            address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A7',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+            chainId: 1
+          },
+          balance: BigInt('1000000000'), // 1000 USDC
+          formattedBalance: '1000.0000',
+          usdValue: '1000.00',
+          chainId: 1,
+          chainName: 'Ethereum'
+        }
+      ]
 
-      // Fetch balances for all tokens across all chains
-      const balancePromises = SUPPORTED_CHAINS.flatMap(chain => 
-        allTokens
-          .filter(token => token.chainId === chain.id)
-          .map(async (token) => {
-            try {
-              // This is a simplified approach - in a real implementation,
-              // you'd want to batch these requests for efficiency
-              const response = await fetch(`/api/balance/${chain.id}/${token.address}/${address}`)
-              const data = await response.json()
-              
-              if (data.balance && BigInt(data.balance) > 0n) {
-                const formattedBalance = (Number(data.balance) / Math.pow(10, token.decimals)).toFixed(4)
-                const usdValue = data.usdValue || "0"
-                
-                const portfolioToken: PortfolioToken = {
-                  token,
-                  balance: BigInt(data.balance),
-                  formattedBalance,
-                  usdValue,
-                  chainId: chain.id,
-                  chainName: chain.name
-                }
+      const totalUsdValue = mockTokens.reduce((sum, token) => sum + parseFloat(token.usdValue), 0)
+      const totalTokens = mockTokens.length
 
-                portfolioTokens.push(portfolioToken)
-
-                // Update chain breakdown
-                const currentChainData = chainBalances.get(chain.id) || { usdValue: 0, tokenCount: 0 }
-                chainBalances.set(chain.id, {
-                  usdValue: currentChainData.usdValue + parseFloat(usdValue),
-                  tokenCount: currentChainData.tokenCount + 1
-                })
-              }
-            } catch (error) {
-              // Silently handle errors for individual token fetches
-              console.warn(`Failed to fetch balance for ${token.symbol} on ${chain.name}:`, error)
-            }
-          })
-      )
-
-      await Promise.allSettled(balancePromises)
-
-      const totalUsdValue = portfolioTokens.reduce((sum, token) => sum + parseFloat(token.usdValue), 0)
-      const totalTokens = portfolioTokens.length
-
-      const chainBreakdown = Array.from(chainBalances.entries()).map(([chainId, data]) => ({
-        chainId,
-        chainName: SUPPORTED_CHAINS.find(chain => chain.id === chainId)?.name || "Unknown",
-        usdValue: data.usdValue,
-        tokenCount: data.tokenCount
-      }))
+      const chainBreakdown = [
+        {
+          chainId: 1,
+          chainName: 'Ethereum',
+          usdValue: totalUsdValue,
+          tokenCount: totalTokens
+        }
+      ]
 
       return {
-        tokens: portfolioTokens.sort((a, b) => parseFloat(b.usdValue) - parseFloat(a.usdValue)),
+        tokens: mockTokens,
         totalUsdValue,
         totalTokens,
-        chainBreakdown: chainBreakdown.sort((a, b) => b.usdValue - a.usdValue)
+        chainBreakdown
       }
     },
     enabled: !!address && isConnected,
