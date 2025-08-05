@@ -259,6 +259,22 @@ export const STABLECOIN_TOKENS: Record<number, Token[]> = {
       chainId: 11155111,
       logoURI: 'https://assets.coingecko.com/coins/images/2518/thumb/weth.png',
     },
+    {
+      address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+      symbol: 'USDC',
+      name: 'USD Coin (Sepolia)',
+      decimals: 6,
+      chainId: 11155111,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0x2227C4aE0fA56F51d4e6A46b13C2f8b9a2A5B3E3',
+      symbol: 'DAI',
+      name: 'Dai Stablecoin (Sepolia)',
+      decimals: 18,
+      chainId: 11155111,
+      logoURI: 'https://assets.coingecko.com/coins/images/9956/thumb/4943.png',
+    },
   ],
 }
 
