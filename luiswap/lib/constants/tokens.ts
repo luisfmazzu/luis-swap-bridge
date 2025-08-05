@@ -1,4 +1,5 @@
 import { type Address } from 'viem'
+import { CHAIN_INFO } from './chains'
 
 export interface Token {
   address: Address
@@ -280,3 +281,6 @@ export const COMMON_TOKENS = {
 } as const
 
 export type CommonTokenSymbol = keyof typeof COMMON_TOKENS
+
+// Supported chains array (from chains constants)
+export const SUPPORTED_CHAINS = Object.values(CHAIN_INFO)

@@ -2,8 +2,10 @@ import { http, createConfig } from 'wagmi'
 import { mainnet, polygon, bsc, arbitrum, optimism, avalanche } from 'wagmi/chains'
 import { coinbaseWallet, metaMask, walletConnect } from 'wagmi/connectors'
 
-// WalletConnect Project ID - You'll need to get this from https://cloud.walletconnect.com/
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo'
+// WalletConnect/Reown Project ID - Get this from https://cloud.walletconnect.com/
+const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || 
+                 process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 
+                 'demo-project-id'
 
 // Configure supported chains
 export const supportedChains = [
@@ -71,13 +73,23 @@ export const wagmiConfig = createConfig({
       metadata: {
         name: 'LuiSwap',
         description: 'Multichain Stablecoin DEX & Bridge Platform',
-        url: 'https://luiswap.com',
-        icons: ['https://luiswap.com/icon.png'],
+        url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        icons: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`],
+      },
+      showQrModal: true,
+      qrModalOptions: {
+        themeMode: 'dark',
+        themeVariables: {
+          '--wcm-z-index': '1000',
+        },
       },
     }),
     coinbaseWallet({
       appName: 'LuiSwap',
-      appLogoUrl: 'https://luiswap.com/icon.png',
+      appLogoUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
+      // Disable analytics to prevent 401 errors
+      enableMobileWalletLink: true,
+      reloadOnDisconnect: false,
     }),
   ],
   transports: Object.fromEntries(

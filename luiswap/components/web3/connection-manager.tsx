@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,16 +11,19 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Wallet, ChevronDown, Copy, ExternalLink, LogOut } from 'lucide-react'
+import { Wallet, ChevronDown, Copy, ExternalLink, LogOut, AlertTriangle } from 'lucide-react'
 import { useWeb3 } from '@/hooks/use-web3'
 import { getChainName, getChainColor } from '@/lib/constants/chains'
 import { motion } from 'framer-motion'
+import { ClientWrapper } from './client-wrapper'
 
-interface WalletConnectButtonProps {
+interface ConnectionManagerProps {
   className?: string
+  showChainInfo?: boolean
+  variant?: 'default' | 'outline' | 'ghost'
 }
 
-export function WalletConnectButton({ className = '' }: WalletConnectButtonProps) {
+function ConnectionManagerContent({ className = '', showChainInfo = true, variant = 'default' }: ConnectionManagerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showWalletInfo, setShowWalletInfo] = useState(false)
   
@@ -37,21 +40,34 @@ export function WalletConnectButton({ className = '' }: WalletConnectButtonProps
     formatAddress,
   } = useWeb3()
 
-  const handleConnect = (connectorId: string) => {
-    connect(connectorId)
-    setIsOpen(false)
+  const handleConnect = async (connectorId: string) => {
+    try {
+      connect(connectorId)
+      setIsOpen(false)
+    } catch (error) {
+      console.error('Connection error:', error)
+      // Handle connection errors gracefully
+      if (error instanceof Error) {
+        // Show user-friendly error message
+        console.warn('Failed to connect wallet:', error.message)
+      }
+    }
   }
 
-  const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address)
+  const handleCopyAddress = async () => {
+    if (address && navigator?.clipboard) {
+      try {
+        await navigator.clipboard.writeText(address)
+      } catch (error) {
+        console.error('Failed to copy address:', error)
+      }
     }
   }
 
   const handleViewOnExplorer = () => {
-    if (address && currentChain) {
+    if (address && currentChain?.blockExplorerUrls?.[0]) {
       const explorerUrl = `${currentChain.blockExplorerUrls[0]}/address/${address}`
-      window.open(explorerUrl, '_blank')
+      window.open(explorerUrl, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -60,19 +76,22 @@ export function WalletConnectButton({ className = '' }: WalletConnectButtonProps
     setShowWalletInfo(false)
   }
 
+  // Connected state
   if (isConnected && address) {
     return (
       <Dialog open={showWalletInfo} onOpenChange={setShowWalletInfo}>
         <DialogTrigger asChild>
           <Button 
-            variant="outline" 
-            className={`bg-card border-border hover:bg-accent ${className}`}
+            variant={variant}
+            className={`${className} ${variant === 'outline' ? 'bg-card border-border hover:bg-accent' : ''}`}
           >
             <div className="flex items-center gap-2">
-              <div 
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: isChainSupported ? '#10B981' : '#EF4444' }}
-              />
+              {showChainInfo && (
+                <div 
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: isChainSupported ? '#10B981' : '#EF4444' }}
+                />
+              )}
               <span className="font-mono text-sm">{formatAddress(address)}</span>
               <ChevronDown className="h-3 w-3" />
             </div>
@@ -92,47 +111,52 @@ export function WalletConnectButton({ className = '' }: WalletConnectButtonProps
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Address</label>
               <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                <span className="font-mono text-sm flex-1">{address}</span>
+                <span className="font-mono text-sm flex-1 break-all">{address}</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleCopyAddress}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 shrink-0"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleViewOnExplorer}
-                  className="h-8 w-8 p-0"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
+                {currentChain?.blockExplorerUrls?.[0] && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleViewOnExplorer}
+                    className="h-8 w-8 p-0 shrink-0"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
 
             {/* Network */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Network</label>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className="border-border"
-                  style={{ 
-                    borderColor: getChainColor(chainId),
-                    color: getChainColor(chainId)
-                  }}
-                >
-                  {getChainName(chainId)}
-                </Badge>
-                {!isChainSupported && (
-                  <Badge variant="destructive" className="text-xs">
-                    Unsupported
+            {showChainInfo && chainId && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Network</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge
+                    variant="outline"
+                    className="border-border"
+                    style={{ 
+                      borderColor: getChainColor(chainId),
+                      color: getChainColor(chainId)
+                    }}
+                  >
+                    {getChainName(chainId)}
                   </Badge>
-                )}
+                  {!isChainSupported && (
+                    <Badge variant="destructive" className="text-xs">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Unsupported
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Disconnect */}
             <Button
@@ -149,11 +173,13 @@ export function WalletConnectButton({ className = '' }: WalletConnectButtonProps
     )
   }
 
+  // Disconnected state
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button 
-          className={`bg-primary text-primary-foreground hover:bg-primary/90 ${className}`}
+          variant={variant}
+          className={`${className} ${variant === 'default' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
           disabled={isConnecting}
         >
           <Wallet className="h-4 w-4 mr-2" />
@@ -192,6 +218,9 @@ export function WalletConnectButton({ className = '' }: WalletConnectButtonProps
                       {connector.id === 'metaMask' && 'Connect using MetaMask browser extension'}
                       {connector.id === 'walletConnect' && 'Scan with mobile wallet'}
                       {connector.id === 'coinbaseWallet' && 'Connect with Coinbase Wallet'}
+                      {!['metaMask', 'walletConnect', 'coinbaseWallet'].includes(connector.id) && 
+                        `Connect using ${connector.name}`
+                      }
                     </div>
                   </div>
                 </div>
@@ -205,5 +234,24 @@ export function WalletConnectButton({ className = '' }: WalletConnectButtonProps
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+export function ConnectionManager(props: ConnectionManagerProps) {
+  return (
+    <ClientWrapper 
+      fallback={
+        <Button 
+          variant={props.variant || 'default'} 
+          className={props.className}
+          disabled
+        >
+          <Wallet className="h-4 w-4 mr-2" />
+          Connect Wallet
+        </Button>
+      }
+    >
+      <ConnectionManagerContent {...props} />
+    </ClientWrapper>
   )
 }

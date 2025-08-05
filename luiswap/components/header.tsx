@@ -3,7 +3,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { WalletConnectButton } from "@/components/wallet/wallet-connect-button"
+import { ConnectionManager } from "@/components/web3"
 import { Menu } from "lucide-react"
 
 export function Header() {
@@ -52,7 +52,10 @@ export function Header() {
               </Button>
             </Link>
           )}
-          <WalletConnectButton className="px-4 lg:px-6 py-2 rounded-full font-medium shadow-sm text-sm lg:text-base" />
+          <ConnectionManager 
+            className="px-4 lg:px-6 py-2 rounded-full font-medium shadow-sm text-sm lg:text-base"
+            variant="outline"
+          />
         </div>
 
         {/* Mobile Menu - Shown below 1200px */}
@@ -86,7 +89,10 @@ export function Header() {
                   </Button>
                 </Link>
               )}
-              <WalletConnectButton className="px-6 py-2 rounded-full font-medium shadow-sm w-full" />
+              <ConnectionManager 
+                className="px-6 py-2 rounded-full font-medium shadow-sm w-full"
+                variant="outline"
+              />
             </nav>
           </SheetContent>
         </Sheet>

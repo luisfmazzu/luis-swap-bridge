@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Web3Provider } from '@/providers/web3-provider'
+import { ClientWrapper } from '@/components/web3'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Luiswap',
+  description: 'React, Wagmi, Turnkey'
 }
 
 export default function RootLayout({
@@ -27,9 +27,11 @@ html {
         `}</style>
       </head>
       <body>
-        <Web3Provider>
-          {children}
-        </Web3Provider>
+        <ClientWrapper>
+          <Web3Provider>
+            {children}
+          </Web3Provider>
+        </ClientWrapper>
       </body>
     </html>
   )
