@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { ChevronDown, Search } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { CHAIN_INFO, getChainName, getChainIcon, getChainColor } from '@/lib/constants/chains'
+import { getBridgeSupportedChainIds } from '@/lib/constants/tokens'
 
 interface ChainSelectorProps {
   selectedChainId?: number
@@ -33,9 +34,10 @@ export function ChainSelector({
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   
-  // Get available chains
+  // Get only bridge-supported chains
+  const bridgeSupportedChainIds = getBridgeSupportedChainIds()
   const availableChains = Object.values(CHAIN_INFO).filter(
-    chain => chain.id !== excludeChainId
+    chain => bridgeSupportedChainIds.includes(chain.id) && chain.id !== excludeChainId
   )
   
   // Filter chains based on search query
