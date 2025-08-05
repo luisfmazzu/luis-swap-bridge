@@ -1,7 +1,3 @@
-import { Turnkey } from '@turnkey/sdk-browser'
-import { EthereumWallet } from '@turnkey/wallet-stamper'
-import { TurnkeyClient } from '@turnkey/http'
-import { WalletStamper } from '@turnkey/wallet-stamper'
 import {
   createConnector,
   type CreateConnectorFn,

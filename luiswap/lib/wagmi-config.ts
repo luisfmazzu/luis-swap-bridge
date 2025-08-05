@@ -1,7 +1,7 @@
 import { http, createConfig } from 'wagmi'
 import { mainnet, polygon, bsc, arbitrum, optimism, avalanche, sepolia } from 'wagmi/chains'
-import { coinbaseWallet, metaMask, walletConnect } from 'wagmi/connectors'
-// import { turnkey } from '@/lib/connectors/turnkey'
+import { coinbaseWallet, metaMask /*, walletConnect */ } from 'wagmi/connectors'
+import { turnkeySimple } from '@/lib/connectors/turnkey-simple'
 
 // WalletConnect/Reown Project ID - Get this from https://cloud.walletconnect.com/
 const projectId = process.env.REOWN_PROJECT_ID || 
@@ -77,22 +77,22 @@ export const wagmiConfig = createConfig({
         iconUrl: 'https://luiswap.com/icon.png',
       },
     }),
-    walletConnect({
-      projectId,
-      metadata: {
-        name: 'LuiSwap',
-        description: 'Multichain Stablecoin DEX & Bridge Platform',
-        url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-        icons: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`],
-      },
-      showQrModal: true,
-      qrModalOptions: {
-        themeMode: 'dark',
-        themeVariables: {
-          '--wcm-z-index': '1000',
-        },
-      },
-    }),
+    // walletConnect({
+    //   projectId,
+    //   metadata: {
+    //     name: 'LuiSwap',
+    //     description: 'Multichain Stablecoin DEX & Bridge Platform',
+    //     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    //     icons: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`],
+    //   },
+    //   showQrModal: true,
+    //   qrModalOptions: {
+    //     themeMode: 'dark',
+    //     themeVariables: {
+    //       '--wcm-z-index': '1000',
+    //     },
+    //   },
+    // }),
     coinbaseWallet({
       appName: 'LuiSwap',
       appLogoUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
@@ -100,14 +100,14 @@ export const wagmiConfig = createConfig({
       enableMobileWalletLink: true,
       reloadOnDisconnect: false,
     }),
-    // turnkey({
-    //   organizationId: process.env.TURNKEY_ORGANIZATION_ID || process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || '',
-    //   apiBaseUrl: process.env.TURNKEY_API_BASE_URL || 'https://api.turnkey.com',
-    //   serverSignUrl: process.env.TURNKEY_SERVER_SIGN_URL || '/api/turnkey/sign',
-    //   appName: 'LuiSwap',
-    //   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    //   appIconUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
-    // }),
+    turnkeySimple({
+      organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || '',
+      apiBaseUrl: process.env.TURNKEY_API_BASE_URL || 'https://api.turnkey.com',
+      serverSignUrl: process.env.TURNKEY_SERVER_SIGN_URL || '/api/turnkey/sign',
+      appName: 'LuiSwap',
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      appIconUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
+    }),
   ],
   transports: Object.fromEntries(
     supportedChains.map((chain) => [

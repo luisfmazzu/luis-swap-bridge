@@ -21,9 +21,9 @@ export function useWeb3() {
     return chainId ? checkChainSupported(chainId) : false
   }, [chainId])
 
-  // Get available connectors
+  // Get available connectors (include all connectors)
   const availableConnectors = useMemo(() => {
-    return connectors.filter(connector => connector.id !== 'turnkey') // Filter out Turnkey for now
+    return connectors // Include all connectors including Turnkey
   }, [connectors])
 
   // Connect to a specific connector

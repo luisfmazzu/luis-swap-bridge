@@ -159,6 +159,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     <Web3ErrorBoundary>
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
+          {/* TurnkeyProvider temporarily removed to fix initialization issues */}
           {children}
         </QueryClientProvider>
       </WagmiProvider>

@@ -26,6 +26,7 @@ interface ConnectionManagerProps {
 function ConnectionManagerContent({ className = '', showChainInfo = true, variant = 'default' }: ConnectionManagerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showWalletInfo, setShowWalletInfo] = useState(false)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
   
   const {
     address,
@@ -42,14 +43,17 @@ function ConnectionManagerContent({ className = '', showChainInfo = true, varian
 
   const handleConnect = async (connectorId: string) => {
     try {
+      setConnectionError(null) // Clear any previous errors
       connect(connectorId)
       setIsOpen(false)
     } catch (error) {
       console.error('Connection error:', error)
       // Handle connection errors gracefully
       if (error instanceof Error) {
-        // Show user-friendly error message
+        setConnectionError(error.message)
         console.warn('Failed to connect wallet:', error.message)
+      } else {
+        setConnectionError('Failed to connect wallet. Please try again.')
       }
     }
   }
@@ -196,6 +200,16 @@ function ConnectionManagerContent({ className = '', showChainInfo = true, varian
         </DialogHeader>
         
         <div className="space-y-3">
+          {connectionError && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <p className="text-sm text-destructive font-medium">Connection Failed</p>
+              </div>
+              <p className="text-xs text-destructive/80 mt-1">{connectionError}</p>
+            </div>
+          )}
+          
           {connectors.map((connector, index) => (
             <motion.div
               key={connector.id}
