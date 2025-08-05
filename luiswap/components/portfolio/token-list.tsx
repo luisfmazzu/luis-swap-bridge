@@ -157,68 +157,72 @@ export function TokenList() {
                   </div>
                 </div>
 
-                {/* Mobile layout (≤ 600px) */}
-                <div className="sm:hidden space-y-3">
-                  {/* Header with token icon and basic info */}
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-semibold text-primary">
-                          {token.symbol.slice(0, 2)}
-                        </span>
+                {/* Mobile layout (≤ 600px) - Two Column */}
+                <div className="sm:hidden">
+                  <div className="flex items-start justify-between gap-3">
+                    {/* Left Column - Token Info */}
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="relative flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-primary">
+                            {token.symbol.slice(0, 2)}
+                          </span>
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-muted border border-background flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground">
+                            {getChainInfo(chainId)?.name.slice(0, 1) || '?'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-muted border border-background flex items-center justify-center">
-                        <span className="text-xs text-muted-foreground">
-                          {getChainInfo(chainId)?.name.slice(0, 1) || '?'}
-                        </span>
+                      <div className="min-w-0 flex-1">
+                        {/* Token symbol */}
+                        <div className="font-medium text-foreground truncate">
+                          {token.symbol}
+                        </div>
+                        {/* Chain name on separate row */}
+                        <div className="mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {chainName}
+                          </Badge>
+                        </div>
+                        {/* Token name */}
+                        <div className="text-sm text-muted-foreground mt-1 truncate">
+                          {token.name}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex-1">
-                      {/* Token symbol on its own row */}
+                    
+                    {/* Right Column - Values */}
+                    <div className="text-right flex-shrink-0">
                       <div className="font-medium text-foreground">
-                        {token.symbol}
+                        {formattedBalance} {token.symbol}
                       </div>
-                      {/* Chain name on separate row */}
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {chainName}
-                        </Badge>
-                        {explorerUrl && (
+                      {/* USD value */}
+                      <div className="text-sm text-muted-foreground mt-1">
+                        ${parseFloat(usdValue).toFixed(2)}
+                      </div>
+                      {/* Percentage change on separate row */}
+                      <div className={`flex items-center justify-end gap-1 text-xs mt-1 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                        {isPositive ? (
+                          <TrendingUp className="h-3 w-3" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3" />
+                        )}
+                        {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
+                      </div>
+                      {/* External link button */}
+                      {explorerUrl && (
+                        <div className="mt-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-auto p-0 text-muted-foreground hover:text-primary"
+                            className="h-auto p-1 text-muted-foreground hover:text-primary"
                             onClick={() => window.open(explorerUrl, '_blank')}
                           >
                             <ExternalLink className="h-3 w-3" />
                           </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Token name as separate row */}
-                  <div className="text-sm text-muted-foreground">
-                    {token.name}
-                  </div>
-
-                  {/* Balance info */}
-                  <div>
-                    <div className="font-medium text-foreground">
-                      {formattedBalance} {token.symbol}
-                    </div>
-                    {/* USD value on separate row */}
-                    <div className="text-sm text-muted-foreground mt-1">
-                      ${parseFloat(usdValue).toFixed(2)}
-                    </div>
-                    {/* Percentage change on separate row */}
-                    <div className={`flex items-center gap-1 text-xs mt-1 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                      {isPositive ? (
-                        <TrendingUp className="h-3 w-3" />
-                      ) : (
-                        <TrendingDown className="h-3 w-3" />
+                        </div>
                       )}
-                      {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
                     </div>
                   </div>
                 </div>
