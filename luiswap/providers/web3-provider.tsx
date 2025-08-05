@@ -1,13 +1,41 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
-import { WagmiProvider } from 'wagmi'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { wagmiConfig } from '@/lib/wagmi-config'
 import { Web3ErrorBoundary } from '@/components/web3/web3-error-boundary'
+import { loadWagmiConfig } from '@/lib/dynamic-wagmi-config'
+
+// Dynamic imports for wagmi and react-query
+let WagmiProvider: any = null
+let QueryClient: any = null
+let QueryClientProvider: any = null
+
+// Dynamic loader for Web3 dependencies
+async function loadWeb3Dependencies() {
+  if (typeof window === 'undefined') return null
+
+  try {
+    // Load wagmi and react-query dynamically
+    const [wagmiModule, reactQueryModule, configResult] = await Promise.all([
+      import('wagmi'),
+      import('@tanstack/react-query'),
+      loadWagmiConfig()
+    ])
+
+    WagmiProvider = wagmiModule.WagmiProvider
+    QueryClient = reactQueryModule.QueryClient
+    QueryClientProvider = reactQueryModule.QueryClientProvider
+
+    return configResult
+  } catch (error) {
+    console.error('Failed to load Web3 dependencies:', error)
+    return null
+  }
+}
 
 // Function to create a query client (called on client-side only)
 function createQueryClient() {
+  if (!QueryClient) return null
+
   return new QueryClient({
     defaultOptions: {
       queries: {
@@ -48,12 +76,31 @@ interface Web3ProviderProps {
 }
 
 export function Web3Provider({ children }: Web3ProviderProps) {
-  // Create QueryClient inside component to avoid SSR issues
-  const [queryClient] = useState(() => createQueryClient())
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [wagmiConfig, setWagmiConfig] = useState<any>(null)
+  const [queryClient, setQueryClient] = useState<any>(null)
 
-  // Add error boundary for WalletConnect issues
+  // Load Web3 dependencies dynamically
   useEffect(() => {
-    // Handle unhandled promise rejections from WalletConnect
+    const initWeb3 = async () => {
+      try {
+        const configResult = await loadWeb3Dependencies()
+        if (configResult?.wagmiConfig) {
+          setWagmiConfig(configResult.wagmiConfig)
+          setQueryClient(createQueryClient())
+          setIsLoaded(true)
+        }
+      } catch (error) {
+        console.error('Failed to initialize Web3:', error)
+      }
+    }
+
+    initWeb3()
+  }, [])
+
+  // Add error boundary for wallet issues
+  useEffect(() => {
+    // Handle unhandled promise rejections from wallets
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const error = event.reason
       
@@ -95,6 +142,17 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       window.removeEventListener('error', handleError)
     }
   }, [])
+
+  // Show loading state while Web3 dependencies are loading
+  if (!isLoaded || !WagmiProvider || !QueryClientProvider || !wagmiConfig || !queryClient) {
+    return (
+      <Web3ErrorBoundary>
+        <div className="min-h-screen bg-background">
+          {children}
+        </div>
+      </Web3ErrorBoundary>
+    )
+  }
 
   return (
     <Web3ErrorBoundary>

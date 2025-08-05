@@ -3,7 +3,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ConnectionManager } from "@/components/web3"
+import { DynamicConnectionManager } from "@/components/web3/dynamic-connection-manager"
 import { Menu } from "lucide-react"
 
 export function Header() {
@@ -52,7 +52,7 @@ export function Header() {
               </Button>
             </Link>
           )}
-          <ConnectionManager 
+          <DynamicConnectionManager 
             className="px-4 lg:px-6 py-2 rounded-full font-medium shadow-sm text-sm lg:text-base"
             variant="outline"
           />
@@ -89,7 +89,7 @@ export function Header() {
                   </Button>
                 </Link>
               )}
-              <ConnectionManager 
+              <DynamicConnectionManager 
                 className="px-6 py-2 rounded-full font-medium shadow-sm w-full"
                 variant="outline"
               />

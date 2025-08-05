@@ -28,8 +28,16 @@ export function BridgeInterface() {
   const [selectedRoute, setSelectedRoute] = useState<BridgeRoute | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
 
-  const { balance: fromTokenBalance } = useTokenBalance(fromToken, address, fromChainId)
-  const { balance: toTokenBalance } = useTokenBalance(toToken, address, toChainId)
+  const { balance: fromTokenBalance } = useTokenBalance({
+    address,
+    token: fromToken,
+    enabled: isConnected && !!fromToken
+  })
+  const { balance: toTokenBalance } = useTokenBalance({
+    address,
+    token: toToken,
+    enabled: isConnected && !!toToken
+  })
 
   const fromChainTokens = getTokensByChain(fromChainId)
   const toChainTokens = getTokensByChain(toChainId)
@@ -150,12 +158,8 @@ export function BridgeInterface() {
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                       <TokenSelector
-                        tokens={fromChainTokens}
                         selectedToken={fromToken}
-                        onSelectToken={setFromToken}
-                        showBalance={true}
-                        userAddress={address}
-                        chainId={fromChainId}
+                        onTokenSelect={setFromToken}
                       />
                     </div>
                   </div>
@@ -210,12 +214,8 @@ export function BridgeInterface() {
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                       <TokenSelector
-                        tokens={toChainTokens}
                         selectedToken={toToken}
-                        onSelectToken={setToToken}
-                        showBalance={true}
-                        userAddress={address}
-                        chainId={toChainId}
+                        onTokenSelect={setToToken}
                       />
                     </div>
                   </div>

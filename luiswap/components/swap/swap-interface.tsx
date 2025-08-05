@@ -9,7 +9,7 @@ import { ArrowUpDown, Settings, AlertTriangle, Loader2 } from 'lucide-react'
 import { TokenSelector } from './token-selector'
 import { useSwapState } from '@/hooks/use-swap'
 import { useWeb3 } from '@/hooks/use-web3'
-import { ConnectionManager } from '@/components/web3'
+import { DynamicConnectionManager } from '@/components/web3/dynamic-connection-manager'
 import { Badge } from '@/components/ui/badge'
 import { getTokensByChain } from '@/lib/constants/tokens'
 
@@ -315,7 +315,7 @@ export function SwapInterface() {
                 whileTap={{ scale: 0.98 }}
               >
                 {!isConnected ? (
-                  <ConnectionManager className="w-full" />
+                  <DynamicConnectionManager className="w-full" />
                 ) : (
                   <Button
                     onClick={handleButtonClick}
