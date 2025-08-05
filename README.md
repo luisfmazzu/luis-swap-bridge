@@ -12,9 +12,9 @@ A modern decentralized exchange (DEX) platform frontend with beautiful UI/UX des
 - Live events monitoring with real-time transaction feeds
 - Mobile-responsive design optimized for all screen sizes
 - Modern animations and interactive components
+- Wagmi Integration: Web3 wallet connections and blockchain interactions
 
 **Next Steps - Backend Integrations**: The following integrations are planned for future development:
-- **Wagmi Integration**: Web3 wallet connections and blockchain interactions
 - **DEX Operations**: 1inch API integration for actual token swapping
 - **Turnkey Wallet**: Embedded wallet infrastructure and user authentication  
 - **Cross-chain Bridging**: Stargate Finance protocol integration

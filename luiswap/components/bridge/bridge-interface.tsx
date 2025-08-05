@@ -20,13 +20,13 @@ import type { BridgeRoute } from "@/lib/api/bridge"
 
 export function BridgeInterface() {
   const { address, isConnected } = useAccount()
-  const chainId = useChainId()
+  const chainId = 728126428 // Tron as default
   
   const [fromAmount, setFromAmount] = useState("")
   const [fromToken, setFromToken] = useState<Token | null>(null)
   const [toToken, setToToken] = useState<Token | null>(null)
   const [fromChainId, setFromChainId] = useState(chainId)
-  const [toChainId, setToChainId] = useState(137) // Polygon as default
+  const [toChainId, setToChainId] = useState(44787) // Celo as default
   const [selectedRoute, setSelectedRoute] = useState<BridgeRoute | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
 
@@ -162,7 +162,7 @@ export function BridgeInterface() {
                   transition={{ delay: 0.25, duration: 0.6 }}
                   className="space-y-2 mb-4"
                 >
-                  <label className="text-xs sm:text-sm text-muted-foreground font-medium">From</label>
+                  <label className="text-xs sm:text-sm text-muted-foreground font-medium mr-2">From</label>
                   <ChainSelector
                     selectedChainId={fromChainId}
                     onChainSelect={setFromChainId}
@@ -177,7 +177,6 @@ export function BridgeInterface() {
                   transition={{ delay: 0.3, duration: 0.6 }}
                   className="space-y-2"
                 >
-                  <label className="text-xs sm:text-sm text-muted-foreground font-medium">Amount ({getFromChainName()})</label>
                   <div className="flex gap-2">
                     <Input
                       type="number"
@@ -232,7 +231,7 @@ export function BridgeInterface() {
                   transition={{ delay: 0.5, duration: 0.6 }}
                   className="space-y-2 mb-4"
                 >
-                  <label className="text-xs sm:text-sm text-muted-foreground font-medium">To</label>
+                  <label className="text-xs sm:text-sm text-muted-foreground font-medium mr-2">To</label>
                   <ChainSelector
                     selectedChainId={toChainId}
                     onChainSelect={setToChainId}
@@ -245,9 +244,8 @@ export function BridgeInterface() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.55, duration: 0.6 }}
-                  className="space-y-2"
+                  className="space-y-2 mr-4"
                 >
-                  <label className="text-xs sm:text-sm text-muted-foreground font-medium">Receive ({getToChainName()})</label>
                   <div className="flex gap-2">
                     <Input
                       type="number"

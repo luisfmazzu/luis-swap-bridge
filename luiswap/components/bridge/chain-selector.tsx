@@ -57,7 +57,7 @@ export function ChainSelector({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="justify-between h-12 bg-muted/30 border-border/50 hover:bg-muted/50"
+          className="justify-between h-8 bg-muted/30 border-border/50 hover:bg-muted/50"
           disabled={disabled}
         >
           {selectedChain ? (
