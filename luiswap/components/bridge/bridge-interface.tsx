@@ -14,19 +14,19 @@ import { useBridgeQuote } from "@/hooks/use-bridge"
 import { useAccount, useChainId } from "wagmi"
 import { parseUnits } from "viem"
 import { getBridgeTokensByChain } from "@/lib/constants/tokens"
-import { getChainName } from "@/lib/constants/chains"
+import { getChainName, tronTestnet, celoTestnet } from "@/lib/constants/chains"
 import type { Token } from "@/lib/constants/tokens"
 import type { BridgeRoute } from "@/lib/api/bridge"
 
 export function BridgeInterface() {
   const { address, isConnected } = useAccount()
-  const chainId = 728126428 // Tron as default
+  const chainId = 3448148188 // Tron testnet as default
   
   const [fromAmount, setFromAmount] = useState("")
   const [fromToken, setFromToken] = useState<Token | null>(null)
   const [toToken, setToToken] = useState<Token | null>(null)
   const [fromChainId, setFromChainId] = useState(chainId)
-  const [toChainId, setToChainId] = useState(44787) // Celo as default
+  const [toChainId, setToChainId] = useState(44787) // Celo testnet as default
   const [selectedRoute, setSelectedRoute] = useState<BridgeRoute | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
 
