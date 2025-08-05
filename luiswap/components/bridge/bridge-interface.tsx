@@ -244,7 +244,7 @@ export function BridgeInterface() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.55, duration: 0.6 }}
-                  className="space-y-2 mr-4"
+                  className="space-y-2"
                 >
                   <div className="flex gap-2">
                     <Input
