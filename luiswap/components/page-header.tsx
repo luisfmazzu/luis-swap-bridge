@@ -3,6 +3,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { DynamicConnectionManager } from "@/components/web3/dynamic-connection-manager"
 import { Menu } from "lucide-react"
 
 export function PageHeader() {
@@ -46,11 +47,10 @@ export function PageHeader() {
 
         {/* Desktop Button - Hidden below 1200px */}
         <div className="hidden xl:flex items-center gap-4">
-          <Link href="https://vercel.com/home" target="_blank" rel="noopener noreferrer">
-            <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-4 lg:px-6 py-2 rounded-full font-medium shadow-sm text-sm lg:text-base">
-              Connect Wallet
-            </Button>
-          </Link>
+          <DynamicConnectionManager 
+            className="px-4 lg:px-6 py-2 rounded-full font-medium shadow-sm text-sm lg:text-base"
+            variant="outline"
+          />
         </div>
 
         {/* Mobile Menu - Shown below 1200px */}
@@ -77,11 +77,10 @@ export function PageHeader() {
                   {item.name}
                 </Link>
               ))}
-              <Link href="https://vercel.com/home" target="_blank" rel="noopener noreferrer" className="w-full">
-                <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-2 rounded-full font-medium shadow-sm w-full">
-                  Connect Wallet
-                </Button>
-              </Link>
+              <DynamicConnectionManager 
+                className="px-6 py-2 rounded-full font-medium shadow-sm w-full"
+                variant="outline"
+              />
             </nav>
           </SheetContent>
         </Sheet>
