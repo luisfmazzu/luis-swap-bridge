@@ -1,6 +1,7 @@
 import { http, createConfig } from 'wagmi'
 import { mainnet, polygon, bsc, arbitrum, optimism, avalanche, sepolia } from 'wagmi/chains'
 import { coinbaseWallet, metaMask, walletConnect } from 'wagmi/connectors'
+// import { turnkey } from '@/lib/connectors/turnkey'
 
 // WalletConnect/Reown Project ID - Get this from https://cloud.walletconnect.com/
 const projectId = process.env.REOWN_PROJECT_ID || 
@@ -20,7 +21,7 @@ export const supportedChains = [
 ] as const
 
 // Chain configurations with RPC endpoints
-const chainConfig = {
+export const chainConfig = {
   [mainnet.id]: {
     name: 'Ethereum',
     rpcUrl: process.env.ETHEREUM_RPC_URL || process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || mainnet.rpcUrls.default.http[0],
@@ -63,7 +64,7 @@ const chainConfig = {
     blockExplorer: 'https://sepolia.etherscan.io',
     nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
   },
-}
+} as const
 
 // Wagmi configuration
 export const wagmiConfig = createConfig({
@@ -99,6 +100,14 @@ export const wagmiConfig = createConfig({
       enableMobileWalletLink: true,
       reloadOnDisconnect: false,
     }),
+    // turnkey({
+    //   organizationId: process.env.TURNKEY_ORGANIZATION_ID || process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || '',
+    //   apiBaseUrl: process.env.TURNKEY_API_BASE_URL || 'https://api.turnkey.com',
+    //   serverSignUrl: process.env.TURNKEY_SERVER_SIGN_URL || '/api/turnkey/sign',
+    //   appName: 'LuiSwap',
+    //   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    //   appIconUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
+    // }),
   ],
   transports: Object.fromEntries(
     supportedChains.map((chain) => [
@@ -109,11 +118,9 @@ export const wagmiConfig = createConfig({
   ssr: true,
 })
 
-export { chainConfig }
-
 // Helper functions
 export const getChainConfig = (chainId: number) => {
-  return chainConfig[chainId]
+  return chainConfig[chainId as keyof typeof chainConfig]
 }
 
 export const getSupportedChainIds = () => {

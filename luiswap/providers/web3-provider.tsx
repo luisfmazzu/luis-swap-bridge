@@ -3,6 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { Web3ErrorBoundary } from '@/components/web3/web3-error-boundary'
 import { loadWagmiConfig } from '@/lib/dynamic-wagmi-config'
+// import { TurnkeyProvider } from '@/contexts/turnkey-context'
 
 // Dynamic imports for wagmi and react-query
 let WagmiProvider: any = null
