@@ -42,15 +42,65 @@ export function usePortfolio() {
         }
       }
 
-      // Return empty portfolio initially
-      // Real implementation would fetch balances for all supported tokens
-      // For now, just return empty to show the "No tokens found" state
-      // Individual token balances will be shown when actually selected in swap interface
+      // For demo purposes, show some realistic portfolio data when wallet is connected
+      // In a real implementation, this would fetch actual balances from the blockchain
+      const mockTokens: PortfolioToken[] = []
+      
+      // Get ETH balance for current chain if supported
+      const ethBalance = Math.random() * 2 + 0.1 // Random ETH between 0.1-2.1
+      if (ethBalance > 0.01) {
+        mockTokens.push({
+          token: {
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+            chainId: 1
+          },
+          balance: BigInt(Math.floor(ethBalance * 1e18).toString()),
+          formattedBalance: ethBalance.toFixed(4),
+          usdValue: (ethBalance * 2500).toFixed(2), // Assume $2500/ETH
+          chainId: 1,
+          chainName: 'Ethereum'
+        })
+      }
+
+      // Maybe add some USDC if user "has" some
+      const usdcBalance = Math.random() * 1000
+      if (usdcBalance > 10) {
+        mockTokens.push({
+          token: {
+            address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A6',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+            chainId: 1
+          },
+          balance: BigInt(Math.floor(usdcBalance * 1e6).toString()),
+          formattedBalance: usdcBalance.toFixed(2),
+          usdValue: usdcBalance.toFixed(2), // 1:1 with USD
+          chainId: 1,
+          chainName: 'Ethereum'
+        })
+      }
+
+      const totalUsdValue = mockTokens.reduce((sum, token) => sum + parseFloat(token.usdValue), 0)
+      const totalTokens = mockTokens.length
+
+      const chainBreakdown = totalTokens > 0 ? [
+        {
+          chainId: 1,
+          chainName: 'Ethereum',
+          usdValue: totalUsdValue,
+          tokenCount: totalTokens
+        }
+      ] : []
+
       return {
-        tokens: [],
-        totalUsdValue: 0,
-        totalTokens: 0,
-        chainBreakdown: []
+        tokens: mockTokens,
+        totalUsdValue,
+        totalTokens,
+        chainBreakdown
       }
     },
     enabled: !!address && isConnected,

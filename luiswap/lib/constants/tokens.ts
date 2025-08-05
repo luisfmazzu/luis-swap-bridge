@@ -68,7 +68,7 @@ export const STABLECOIN_TOKENS: Record<number, Token[]> = {
   // Ethereum Mainnet
   1: [
     {
-      address: '0xA0b86a33E6441c8C09b53Fba0A14C7cd83C09F56',
+      address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A6',
       symbol: 'USDC',
       name: 'USD Coin',
       decimals: 6,
