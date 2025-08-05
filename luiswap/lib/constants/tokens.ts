@@ -61,6 +61,20 @@ export const NATIVE_TOKENS: Record<number, Token> = {
     decimals: 18,
     chainId: 11155111,
   },
+  42220: {
+    address: '0x0000000000000000000000000000000000000000',
+    symbol: 'CELO',
+    name: 'Celo',
+    decimals: 18,
+    chainId: 42220,
+  },
+  728126428: {
+    address: '0x0000000000000000000000000000000000000000',
+    symbol: 'TRX',
+    name: 'Tronix',
+    decimals: 6,
+    chainId: 728126428,
+  },
 }
 
 // Stablecoin tokens by chain
@@ -276,6 +290,209 @@ export const STABLECOIN_TOKENS: Record<number, Token[]> = {
       logoURI: 'https://assets.coingecko.com/coins/images/9956/thumb/4943.png',
     },
   ],
+  
+  // Celo
+  42220: [
+    {
+      address: '0x37f750B7cC259A2f741AF45294f6a16572CF5cAd',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 42220,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 42220,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // Tron
+  728126428: [
+    {
+      address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 728126428,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+    {
+      address: 'TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 728126428,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+  ],
+}
+
+// Bridge-specific tokens (only USDT and USDC for bridge operations)
+export const BRIDGE_TOKENS: Record<number, Token[]> = {
+  // Ethereum Mainnet
+  1: [
+    {
+      address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A6',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 1,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 1,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // Polygon
+  137: [
+    {
+      address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 137,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 137,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // BSC
+  56: [
+    {
+      address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 18,
+      chainId: 56,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0x55d398326f99059fF775485246999027B3197955',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 18,
+      chainId: 56,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // Arbitrum
+  42161: [
+    {
+      address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 42161,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 42161,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // Optimism
+  10: [
+    {
+      address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 10,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 10,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // Avalanche
+  43114: [
+    {
+      address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 43114,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 43114,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // Celo
+  42220: [
+    {
+      address: '0x37f750B7cC259A2f741AF45294f6a16572CF5cAd',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 42220,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+    {
+      address: '0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 42220,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+  ],
+  
+  // Tron
+  728126428: [
+    {
+      address: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+      symbol: 'USDT',
+      name: 'Tether USD',
+      decimals: 6,
+      chainId: 728126428,
+      logoURI: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+    },
+    {
+      address: 'TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: 728126428,
+      logoURI: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+    },
+  ],
 }
 
 // Helper functions
@@ -309,6 +526,11 @@ export const getAllTokens = (): Token[] => {
 
 export const getSupportedTokenSymbols = (chainId: number): string[] => {
   return getTokensByChain(chainId).map(token => token.symbol)
+}
+
+// Helper function for bridge-specific tokens (only USDT and USDC)
+export const getBridgeTokensByChain = (chainId: number): Token[] => {
+  return BRIDGE_TOKENS[chainId] || []
 }
 
 // Common stablecoin addresses for easy reference

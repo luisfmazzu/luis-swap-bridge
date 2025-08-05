@@ -185,7 +185,7 @@ export function SwapInterface() {
                     placeholder="0.0"
                     value={fromAmount}
                     onChange={(e) => setFromAmount(e.target.value)}
-                    className="flex-1 text-lg bg-muted/30 border-border/50 text-foreground"
+                    className="flex-1 h-12 text-lg bg-muted/30 border-border/50 text-foreground"
                   />
                   <TokenSelector
                     selectedToken={fromToken}
@@ -241,7 +241,7 @@ export function SwapInterface() {
                     placeholder="0.0"
                     value={toAmount}
                     readOnly
-                    className="flex-1 text-lg bg-muted/30 border-border/50 text-foreground"
+                    className="flex-1 h-12 text-lg bg-muted/30 border-border/50 text-foreground"
                   />
                   <TokenSelector
                     selectedToken={toToken}

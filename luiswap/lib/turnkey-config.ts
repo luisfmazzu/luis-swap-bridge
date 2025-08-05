@@ -3,12 +3,13 @@ import { createConnector } from 'wagmi'
 import { TurnkeyViemAccount, viem } from '@turnkey/viem'
 
 // Turnkey configuration
+// Note: These should eventually be moved to server-side configuration for security
 const turnkeyConfig = {
-  apiBaseUrl: process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL || 'https://api.turnkey.com',
-  defaultOrganizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || '',
-  rpId: process.env.NEXT_PUBLIC_TURNKEY_RP_ID || 'localhost',
-  serverSignUrl: process.env.NEXT_PUBLIC_TURNKEY_SERVER_SIGN_URL || '/api/turnkey/sign',
-  iframeUrl: process.env.NEXT_PUBLIC_TURNKEY_IFRAME_URL || 'https://auth.turnkey.com',
+  apiBaseUrl: process.env.TURNKEY_API_BASE_URL || process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL || 'https://api.turnkey.com',
+  defaultOrganizationId: process.env.TURNKEY_ORGANIZATION_ID || process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || '',
+  rpId: process.env.TURNKEY_RP_ID || process.env.NEXT_PUBLIC_TURNKEY_RP_ID || 'localhost',
+  serverSignUrl: process.env.TURNKEY_SERVER_SIGN_URL || process.env.NEXT_PUBLIC_TURNKEY_SERVER_SIGN_URL || '/api/turnkey/sign',
+  iframeUrl: process.env.TURNKEY_IFRAME_URL || process.env.NEXT_PUBLIC_TURNKEY_IFRAME_URL || 'https://auth.turnkey.com',
 }
 
 // Initialize Turnkey client

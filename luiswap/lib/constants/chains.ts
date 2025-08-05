@@ -1,4 +1,17 @@
-import { mainnet, polygon, bsc, arbitrum, optimism, avalanche, sepolia } from 'wagmi/chains'
+import { mainnet, polygon, bsc, arbitrum, optimism, avalanche, sepolia, celo } from 'wagmi/chains'
+
+// TRON chain configuration (not in wagmi/chains, so we define it manually)
+export const tron = {
+  id: 728126428,
+  name: 'Tron',
+  nativeCurrency: { name: 'TRX', symbol: 'TRX', decimals: 6 },
+  rpcUrls: {
+    default: { http: ['https://api.trongrid.io'] }
+  },
+  blockExplorers: {
+    default: { name: 'Tronscan', url: 'https://tronscan.org' }
+  }
+} as const
 
 export interface ChainInfo {
   id: number
@@ -23,7 +36,7 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     shortName: 'ETH',
     nativeCurrency: mainnet.nativeCurrency,
     rpcUrls: [
-      process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || mainnet.rpcUrls.default.http[0],
+      process.env.ETHEREUM_RPC_URL || process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || mainnet.rpcUrls.default.http[0],
       ...mainnet.rpcUrls.default.http,
     ],
     blockExplorerUrls: [mainnet.blockExplorers.default.url],
@@ -36,7 +49,7 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     shortName: 'MATIC',
     nativeCurrency: polygon.nativeCurrency,
     rpcUrls: [
-      process.env.NEXT_PUBLIC_POLYGON_RPC_URL || polygon.rpcUrls.default.http[0],
+      process.env.POLYGON_RPC_URL || process.env.NEXT_PUBLIC_POLYGON_RPC_URL || polygon.rpcUrls.default.http[0],
       ...polygon.rpcUrls.default.http,
     ],
     blockExplorerUrls: [polygon.blockExplorers.default.url],
@@ -49,7 +62,7 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     shortName: 'BSC',
     nativeCurrency: bsc.nativeCurrency,
     rpcUrls: [
-      process.env.NEXT_PUBLIC_BSC_RPC_URL || bsc.rpcUrls.default.http[0],
+      process.env.BSC_RPC_URL || process.env.NEXT_PUBLIC_BSC_RPC_URL || bsc.rpcUrls.default.http[0],
       ...bsc.rpcUrls.default.http,
     ],
     blockExplorerUrls: [bsc.blockExplorers.default.url],
@@ -62,7 +75,7 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     shortName: 'ARB',
     nativeCurrency: arbitrum.nativeCurrency,
     rpcUrls: [
-      process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || arbitrum.rpcUrls.default.http[0],
+      process.env.ARBITRUM_RPC_URL || process.env.NEXT_PUBLIC_ARBITRUM_RPC_URL || arbitrum.rpcUrls.default.http[0],
       ...arbitrum.rpcUrls.default.http,
     ],
     blockExplorerUrls: [arbitrum.blockExplorers.default.url],
@@ -75,7 +88,7 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     shortName: 'OP',
     nativeCurrency: optimism.nativeCurrency,
     rpcUrls: [
-      process.env.NEXT_PUBLIC_OPTIMISM_RPC_URL || optimism.rpcUrls.default.http[0],
+      process.env.OPTIMISM_RPC_URL || process.env.NEXT_PUBLIC_OPTIMISM_RPC_URL || optimism.rpcUrls.default.http[0],
       ...optimism.rpcUrls.default.http,
     ],
     blockExplorerUrls: [optimism.blockExplorers.default.url],
@@ -88,7 +101,7 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     shortName: 'AVAX',
     nativeCurrency: avalanche.nativeCurrency,
     rpcUrls: [
-      process.env.NEXT_PUBLIC_AVALANCHE_RPC_URL || avalanche.rpcUrls.default.http[0],
+      process.env.AVALANCHE_RPC_URL || process.env.NEXT_PUBLIC_AVALANCHE_RPC_URL || avalanche.rpcUrls.default.http[0],
       ...avalanche.rpcUrls.default.http,
     ],
     blockExplorerUrls: [avalanche.blockExplorers.default.url],
@@ -101,12 +114,38 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     shortName: 'SEP',
     nativeCurrency: sepolia.nativeCurrency,
     rpcUrls: [
-      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || sepolia.rpcUrls.default.http[0],
+      process.env.SEPOLIA_RPC_URL || process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || sepolia.rpcUrls.default.http[0],
       ...sepolia.rpcUrls.default.http,
     ],
     blockExplorerUrls: [sepolia.blockExplorers.default.url],
     iconUrl: '/icons/ethereum.svg', // Use Ethereum icon for Sepolia
     color: '#627EEA', // Use Ethereum color for Sepolia
+  },
+  [celo.id]: {
+    id: celo.id,
+    name: 'Celo',
+    shortName: 'CELO',
+    nativeCurrency: celo.nativeCurrency,
+    rpcUrls: [
+      process.env.CELO_RPC_URL || process.env.NEXT_PUBLIC_CELO_RPC_URL || celo.rpcUrls.default.http[0],
+      ...celo.rpcUrls.default.http,
+    ],
+    blockExplorerUrls: [celo.blockExplorers.default.url],
+    iconUrl: '/icons/celo.svg',
+    color: '#35D07F',
+  },
+  [tron.id]: {
+    id: tron.id,
+    name: 'Tron',
+    shortName: 'TRX',
+    nativeCurrency: tron.nativeCurrency,
+    rpcUrls: [
+      process.env.TRON_RPC_URL || process.env.NEXT_PUBLIC_TRON_RPC_URL || tron.rpcUrls.default.http[0],
+      ...tron.rpcUrls.default.http,
+    ],
+    blockExplorerUrls: [tron.blockExplorers.default.url],
+    iconUrl: '/icons/tron.svg',
+    color: '#FF060A',
   },
 }
 
