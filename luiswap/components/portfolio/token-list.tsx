@@ -97,43 +97,122 @@ export function TokenList() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/10 transition-colors"
+                className="p-4 rounded-lg border border-border hover:bg-muted/10 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-primary">
-                        {token.symbol.slice(0, 2)}
-                      </span>
+                {/* Desktop layout (> 600px) */}
+                <div className="hidden sm:flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">
+                          {token.symbol.slice(0, 2)}
+                        </span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-muted border border-background flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">
+                          {getChainInfo(chainId)?.name.slice(0, 1) || '?'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-muted border border-background flex items-center justify-center">
-                      <span className="text-xs text-muted-foreground">
-                        {getChainInfo(chainId)?.name.slice(0, 1) || '?'}
-                      </span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">{token.symbol}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {chainName}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {token.name}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground">{token.symbol}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {chainName}
-                      </Badge>
+                  
+                  <div className="text-right">
+                    <div className="font-medium text-foreground">
+                      {formattedBalance} {token.symbol}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {token.name}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        ${parseFloat(usdValue).toFixed(2)}
+                      </span>
+                      <div className={`flex items-center gap-1 text-xs ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                        {isPositive ? (
+                          <TrendingUp className="h-3 w-3" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3" />
+                        )}
+                        {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
+                      </div>
+                      {explorerUrl && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-0 ml-1 text-muted-foreground hover:text-primary"
+                          onClick={() => window.open(explorerUrl, '_blank')}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <div className="font-medium text-foreground">
-                    {formattedBalance} {token.symbol}
+
+                {/* Mobile layout (≤ 600px) */}
+                <div className="sm:hidden space-y-3">
+                  {/* Header with token icon and basic info */}
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">
+                          {token.symbol.slice(0, 2)}
+                        </span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-muted border border-background flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">
+                          {getChainInfo(chainId)?.name.slice(0, 1) || '?'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      {/* Token symbol on its own row */}
+                      <div className="font-medium text-foreground">
+                        {token.symbol}
+                      </div>
+                      {/* Chain name on separate row */}
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {chainName}
+                        </Badge>
+                        {explorerUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 text-muted-foreground hover:text-primary"
+                            onClick={() => window.open(explorerUrl, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
+
+                  {/* Token name as separate row */}
+                  <div className="text-sm text-muted-foreground">
+                    {token.name}
+                  </div>
+
+                  {/* Balance info */}
+                  <div>
+                    <div className="font-medium text-foreground">
+                      {formattedBalance} {token.symbol}
+                    </div>
+                    {/* USD value on separate row */}
+                    <div className="text-sm text-muted-foreground mt-1">
                       ${parseFloat(usdValue).toFixed(2)}
-                    </span>
-                    <div className={`flex items-center gap-1 text-xs ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                    </div>
+                    {/* Percentage change on separate row */}
+                    <div className={`flex items-center gap-1 text-xs mt-1 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
                       {isPositive ? (
                         <TrendingUp className="h-3 w-3" />
                       ) : (
@@ -141,16 +220,6 @@ export function TokenList() {
                       )}
                       {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
                     </div>
-                    {explorerUrl && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto p-0 ml-1 text-muted-foreground hover:text-primary"
-                        onClick={() => window.open(explorerUrl, '_blank')}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
-                    )}
                   </div>
                 </div>
               </motion.div>
