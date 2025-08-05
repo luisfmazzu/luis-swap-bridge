@@ -160,7 +160,7 @@ export function BridgeInterface() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.25, duration: 0.6 }}
-                  className="space-y-2"
+                  className="space-y-2 mb-4"
                 >
                   <label className="text-xs sm:text-sm text-muted-foreground font-medium">From</label>
                   <ChainSelector
@@ -230,7 +230,7 @@ export function BridgeInterface() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5, duration: 0.6 }}
-                  className="space-y-2"
+                  className="space-y-2 mb-4"
                 >
                   <label className="text-xs sm:text-sm text-muted-foreground font-medium">To</label>
                   <ChainSelector
