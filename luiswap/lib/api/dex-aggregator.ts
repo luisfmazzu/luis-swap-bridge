@@ -77,7 +77,7 @@ export class DexAggregator {
   private readonly apiKey: string
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || process.env.NEXT_PUBLIC_1INCH_API_KEY || ''
+    this.apiKey = apiKey || process.env.ONEINCH_API_KEY || process.env.NEXT_PUBLIC_1INCH_API_KEY || ''
   }
 
   private async request<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {

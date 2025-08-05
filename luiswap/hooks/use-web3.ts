@@ -2,7 +2,7 @@
 
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi'
 import { useCallback, useMemo } from 'react'
-import { CHAIN_INFO, isChainSupported, getChainInfo } from '@/lib/constants/chains'
+import { CHAIN_INFO, isChainSupported as checkChainSupported, getChainInfo } from '@/lib/constants/chains'
 
 export function useWeb3() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount()
@@ -18,7 +18,7 @@ export function useWeb3() {
 
   // Check if current chain is supported
   const isChainSupported = useMemo(() => {
-    return chainId ? isChainSupported(chainId) : false
+    return chainId ? checkChainSupported(chainId) : false
   }, [chainId])
 
   // Get available connectors
@@ -41,7 +41,7 @@ export function useWeb3() {
   const switchToChain = useCallback((targetChainId: number) => {
     if (targetChainId === chainId) return
     
-    if (!isChainSupported(targetChainId)) {
+    if (!checkChainSupported(targetChainId)) {
       throw new Error(`Chain ${targetChainId} is not supported`)
     }
 

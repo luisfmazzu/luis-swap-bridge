@@ -271,3 +271,19 @@ export function isBridgeSupported(fromChainId: number, toChainId: number): boole
 export function getSupportedBridgeChains(): number[] {
   return Object.keys(STARGATE_CHAIN_IDS).map(Number)
 }
+
+// Convenience function for getting bridge routes (used by hooks)
+export async function getBridgeRoutes(
+  fromChainId: number,
+  toChainId: number,
+  tokenSymbol: string = 'USDC'
+): Promise<BridgeRoute[]> {
+  return bridgeAggregator.getRoutes(fromChainId, toChainId, tokenSymbol)
+}
+
+// Convenience function for executing bridge transaction (used by hooks)
+export async function executeBridgeTransaction(
+  params: StargateBridgeParams
+): Promise<BridgeTransaction> {
+  return bridgeAggregator.getBridgeTransaction(params)
+}

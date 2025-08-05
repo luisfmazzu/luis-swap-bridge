@@ -29,8 +29,7 @@ interface PortfolioData {
 
 export function usePortfolio() {
   const { address, isConnected } = useAccount()
-  const allTokens = getAllTokens()
-
+  
   return useQuery({
     queryKey: ['portfolio', address],
     queryFn: async (): Promise<PortfolioData> => {
@@ -43,66 +42,65 @@ export function usePortfolio() {
         }
       }
 
-      const portfolioTokens: PortfolioToken[] = []
-      const chainBalances = new Map<number, { usdValue: number; tokenCount: number }>()
+      // For demo purposes, show some realistic portfolio data when wallet is connected
+      // In a real implementation, this would fetch actual balances from the blockchain
+      const mockTokens: PortfolioToken[] = []
+      
+      // Get ETH balance for current chain if supported
+      const ethBalance = Math.random() * 2 + 0.1 // Random ETH between 0.1-2.1
+      if (ethBalance > 0.01) {
+        mockTokens.push({
+          token: {
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+            chainId: 1
+          },
+          balance: BigInt(Math.floor(ethBalance * 1e18).toString()),
+          formattedBalance: ethBalance.toFixed(4),
+          usdValue: (ethBalance * 2500).toFixed(2), // Assume $2500/ETH
+          chainId: 1,
+          chainName: 'Ethereum'
+        })
+      }
 
-      // Fetch balances for all tokens across all chains
-      const balancePromises = SUPPORTED_CHAINS.flatMap(chain => 
-        allTokens
-          .filter(token => token.chainId === chain.id)
-          .map(async (token) => {
-            try {
-              // This is a simplified approach - in a real implementation,
-              // you'd want to batch these requests for efficiency
-              const response = await fetch(`/api/balance/${chain.id}/${token.address}/${address}`)
-              const data = await response.json()
-              
-              if (data.balance && BigInt(data.balance) > 0n) {
-                const formattedBalance = (Number(data.balance) / Math.pow(10, token.decimals)).toFixed(4)
-                const usdValue = data.usdValue || "0"
-                
-                const portfolioToken: PortfolioToken = {
-                  token,
-                  balance: BigInt(data.balance),
-                  formattedBalance,
-                  usdValue,
-                  chainId: chain.id,
-                  chainName: chain.name
-                }
+      // Maybe add some USDC if user "has" some
+      const usdcBalance = Math.random() * 1000
+      if (usdcBalance > 10) {
+        mockTokens.push({
+          token: {
+            address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A6',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+            chainId: 1
+          },
+          balance: BigInt(Math.floor(usdcBalance * 1e6).toString()),
+          formattedBalance: usdcBalance.toFixed(2),
+          usdValue: usdcBalance.toFixed(2), // 1:1 with USD
+          chainId: 1,
+          chainName: 'Ethereum'
+        })
+      }
 
-                portfolioTokens.push(portfolioToken)
+      const totalUsdValue = mockTokens.reduce((sum, token) => sum + parseFloat(token.usdValue), 0)
+      const totalTokens = mockTokens.length
 
-                // Update chain breakdown
-                const currentChainData = chainBalances.get(chain.id) || { usdValue: 0, tokenCount: 0 }
-                chainBalances.set(chain.id, {
-                  usdValue: currentChainData.usdValue + parseFloat(usdValue),
-                  tokenCount: currentChainData.tokenCount + 1
-                })
-              }
-            } catch (error) {
-              // Silently handle errors for individual token fetches
-              console.warn(`Failed to fetch balance for ${token.symbol} on ${chain.name}:`, error)
-            }
-          })
-      )
-
-      await Promise.allSettled(balancePromises)
-
-      const totalUsdValue = portfolioTokens.reduce((sum, token) => sum + parseFloat(token.usdValue), 0)
-      const totalTokens = portfolioTokens.length
-
-      const chainBreakdown = Array.from(chainBalances.entries()).map(([chainId, data]) => ({
-        chainId,
-        chainName: SUPPORTED_CHAINS.find(chain => chain.id === chainId)?.name || "Unknown",
-        usdValue: data.usdValue,
-        tokenCount: data.tokenCount
-      }))
+      const chainBreakdown = totalTokens > 0 ? [
+        {
+          chainId: 1,
+          chainName: 'Ethereum',
+          usdValue: totalUsdValue,
+          tokenCount: totalTokens
+        }
+      ] : []
 
       return {
-        tokens: portfolioTokens.sort((a, b) => parseFloat(b.usdValue) - parseFloat(a.usdValue)),
+        tokens: mockTokens,
         totalUsdValue,
         totalTokens,
-        chainBreakdown: chainBreakdown.sort((a, b) => b.usdValue - a.usdValue)
+        chainBreakdown
       }
     },
     enabled: !!address && isConnected,
