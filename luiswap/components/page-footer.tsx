@@ -44,82 +44,171 @@ export function PageFooter() {
           </div>
 
           {/* Right Section: Footer Links */}
-          <div className="flex flex-col md:flex-row gap-8 md:gap-16 p-4 md:p-8 w-full md:w-auto">
-            {/* Product */}
-            <div className="flex flex-col justify-start items-start gap-3">
-              <h3 className="text-muted-foreground text-sm font-medium leading-5">Product</h3>
-              <div className="flex flex-col justify-end items-start gap-2">
-                <a href="/" className="text-foreground text-sm font-normal leading-5 hover:underline">
-                  Home
-                </a>
-                <a href="/swap" className="text-foreground text-sm font-normal leading-5 hover:underline">
-                  Swap
-                </a>
-                <a href="/bridge" className="text-foreground text-sm font-normal leading-5 hover:underline">
-                  Bridge
-                </a>
-                <a href="/explore" className="text-foreground text-sm font-normal leading-5 hover:underline">
-                  Explore
-                </a>
-                <a href="/live-events" className="text-foreground text-sm font-normal leading-5 hover:underline">
-                  Live Events
-                </a>
+          <div className="p-4 md:p-8 w-full md:w-auto">
+            {/* Desktop Layout: 3 columns */}
+            <div className="hidden md:flex gap-16">
+              {/* Product */}
+              <div className="flex flex-col justify-start items-start gap-3">
+                <h3 className="text-muted-foreground text-sm font-medium leading-5">Product</h3>
+                <div className="flex flex-col justify-end items-start gap-2">
+                  <a href="/" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                    Home
+                  </a>
+                  <a href="/swap" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                    Swap
+                  </a>
+                  <a href="/bridge" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                    Bridge
+                  </a>
+                  <a href="/explore" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                    Explore
+                  </a>
+                  <a href="/live-events" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                    Live Events
+                  </a>
+                </div>
+              </div>
+
+              {/* Company */}
+              <div className="flex flex-col justify-start items-start gap-3">
+                <h3 className="text-muted-foreground text-sm font-medium leading-5">Company</h3>
+                <div className="flex flex-col justify-end items-start gap-2">
+                  <button
+                    onClick={() => showComingSoonAlert("About")}
+                    className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                  >
+                    About
+                  </button>
+                  <button
+                    onClick={() => showComingSoonAlert("Careers")}
+                    className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                  >
+                    Careers
+                  </button>
+                  <button
+                    onClick={() => showComingSoonAlert("Blog")}
+                    className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                  >
+                    Blog
+                  </button>
+                </div>
+              </div>
+
+              {/* Resources */}
+              <div className="flex flex-col justify-start items-start gap-3">
+                <h3 className="text-muted-foreground text-sm font-medium leading-5">Resources</h3>
+                <div className="flex flex-col justify-end items-start gap-2">
+                  <button
+                    onClick={() => showComingSoonAlert("Documentation")}
+                    className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                  >
+                    Documentation
+                  </button>
+                  <button
+                    onClick={() => showComingSoonAlert("API")}
+                    className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                  >
+                    API
+                  </button>
+                  <button
+                    onClick={() => showComingSoonAlert("Support")}
+                    className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                  >
+                    Support
+                  </button>
+                  <button
+                    onClick={() => showComingSoonAlert("Community")}
+                    className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                  >
+                    Community
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Company */}
-            <div className="flex flex-col justify-start items-start gap-3">
-              <h3 className="text-muted-foreground text-sm font-medium leading-5">Company</h3>
-              <div className="flex flex-col justify-end items-start gap-2">
-                <button
-                  onClick={() => showComingSoonAlert("About")}
-                  className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
-                >
-                  About
-                </button>
-                <button
-                  onClick={() => showComingSoonAlert("Careers")}
-                  className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
-                >
-                  Careers
-                </button>
-                <button
-                  onClick={() => showComingSoonAlert("Blog")}
-                  className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
-                >
-                  Blog
-                </button>
-              </div>
-            </div>
+            {/* Mobile Layout: 2 columns grid */}
+            <div className="md:hidden grid grid-cols-2 gap-8">
+              {/* Left Column: Product + Company */}
+              <div className="space-y-6">
+                {/* Product */}
+                <div className="flex flex-col justify-start items-start gap-3">
+                  <h3 className="text-muted-foreground text-sm font-medium leading-5">Product</h3>
+                  <div className="flex flex-col justify-end items-start gap-2">
+                    <a href="/" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                      Home
+                    </a>
+                    <a href="/swap" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                      Swap
+                    </a>
+                    <a href="/bridge" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                      Bridge
+                    </a>
+                    <a href="/explore" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                      Explore
+                    </a>
+                    <a href="/live-events" className="text-foreground text-sm font-normal leading-5 hover:underline">
+                      Live Events
+                    </a>
+                  </div>
+                </div>
 
-            {/* Resources */}
-            <div className="flex flex-col justify-start items-start gap-3">
-              <h3 className="text-muted-foreground text-sm font-medium leading-5">Resources</h3>
-              <div className="flex flex-col justify-end items-start gap-2">
-                <button
-                  onClick={() => showComingSoonAlert("Documentation")}
-                  className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
-                >
-                  Documentation
-                </button>
-                <button
-                  onClick={() => showComingSoonAlert("API")}
-                  className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
-                >
-                  API
-                </button>
-                <button
-                  onClick={() => showComingSoonAlert("Support")}
-                  className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
-                >
-                  Support
-                </button>
-                <button
-                  onClick={() => showComingSoonAlert("Community")}
-                  className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
-                >
-                  Community
-                </button>
+                {/* Company */}
+                <div className="flex flex-col justify-start items-start gap-3">
+                  <h3 className="text-muted-foreground text-sm font-medium leading-5">Company</h3>
+                  <div className="flex flex-col justify-end items-start gap-2">
+                    <button
+                      onClick={() => showComingSoonAlert("About")}
+                      className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                    >
+                      About
+                    </button>
+                    <button
+                      onClick={() => showComingSoonAlert("Careers")}
+                      className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                    >
+                      Careers
+                    </button>
+                    <button
+                      onClick={() => showComingSoonAlert("Blog")}
+                      className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                    >
+                      Blog
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Resources */}
+              <div>
+                <div className="flex flex-col justify-start items-start gap-3">
+                  <h3 className="text-muted-foreground text-sm font-medium leading-5">Resources</h3>
+                  <div className="flex flex-col justify-end items-start gap-2">
+                    <button
+                      onClick={() => showComingSoonAlert("Documentation")}
+                      className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                    >
+                      Documentation
+                    </button>
+                    <button
+                      onClick={() => showComingSoonAlert("API")}
+                      className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                    >
+                      API
+                    </button>
+                    <button
+                      onClick={() => showComingSoonAlert("Support")}
+                      className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                    >
+                      Support
+                    </button>
+                    <button
+                      onClick={() => showComingSoonAlert("Community")}
+                      className="text-foreground text-sm font-normal leading-5 hover:underline text-left"
+                    >
+                      Community
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
