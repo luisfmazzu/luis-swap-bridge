@@ -42,57 +42,15 @@ export function usePortfolio() {
         }
       }
 
-      // For now, return mock data to show the structure
-      // In a real implementation, this would integrate with the useTokenBalance hook
-      // or fetch data from multiple chains
-      const mockTokens: PortfolioToken[] = [
-        {
-          token: {
-            address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A6',
-            symbol: 'ETH',
-            name: 'Ethereum',
-            decimals: 18,
-            chainId: 1
-          },
-          balance: BigInt('1500000000000000000'), // 1.5 ETH
-          formattedBalance: '1.5000',
-          usdValue: '3750.00',
-          chainId: 1,
-          chainName: 'Ethereum'
-        },
-        {
-          token: {
-            address: '0xA0b86a33E6441E7e3c4fb0c2f1F8d7A9a8F6A8A7',
-            symbol: 'USDC',
-            name: 'USD Coin',
-            decimals: 6,
-            chainId: 1
-          },
-          balance: BigInt('1000000000'), // 1000 USDC
-          formattedBalance: '1000.0000',
-          usdValue: '1000.00',
-          chainId: 1,
-          chainName: 'Ethereum'
-        }
-      ]
-
-      const totalUsdValue = mockTokens.reduce((sum, token) => sum + parseFloat(token.usdValue), 0)
-      const totalTokens = mockTokens.length
-
-      const chainBreakdown = [
-        {
-          chainId: 1,
-          chainName: 'Ethereum',
-          usdValue: totalUsdValue,
-          tokenCount: totalTokens
-        }
-      ]
-
+      // Return empty portfolio initially
+      // Real implementation would fetch balances for all supported tokens
+      // For now, just return empty to show the "No tokens found" state
+      // Individual token balances will be shown when actually selected in swap interface
       return {
-        tokens: mockTokens,
-        totalUsdValue,
-        totalTokens,
-        chainBreakdown
+        tokens: [],
+        totalUsdValue: 0,
+        totalTokens: 0,
+        chainBreakdown: []
       }
     },
     enabled: !!address && isConnected,

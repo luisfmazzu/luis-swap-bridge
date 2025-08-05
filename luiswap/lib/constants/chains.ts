@@ -1,4 +1,4 @@
-import { mainnet, polygon, bsc, arbitrum, optimism, avalanche } from 'wagmi/chains'
+import { mainnet, polygon, bsc, arbitrum, optimism, avalanche, sepolia } from 'wagmi/chains'
 
 export interface ChainInfo {
   id: number
@@ -94,6 +94,19 @@ export const CHAIN_INFO: Record<number, ChainInfo> = {
     blockExplorerUrls: [avalanche.blockExplorers.default.url],
     iconUrl: '/icons/avalanche.svg',
     color: '#E84142',
+  },
+  [sepolia.id]: {
+    id: sepolia.id,
+    name: 'Sepolia',
+    shortName: 'SEP',
+    nativeCurrency: sepolia.nativeCurrency,
+    rpcUrls: [
+      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || sepolia.rpcUrls.default.http[0],
+      ...sepolia.rpcUrls.default.http,
+    ],
+    blockExplorerUrls: [sepolia.blockExplorers.default.url],
+    iconUrl: '/icons/ethereum.svg', // Use Ethereum icon for Sepolia
+    color: '#627EEA', // Use Ethereum color for Sepolia
   },
 }
 

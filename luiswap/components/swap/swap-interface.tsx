@@ -44,16 +44,16 @@ export function SwapInterface() {
   } = useSwapState()
 
   // Get real token balances
-  const { balance: fromTokenBalance } = useTokenBalance({
+  const { balance: fromTokenBalance, isLoading: isFromBalanceLoading } = useTokenBalance({
     address,
     token: fromToken,
-    enabled: isConnected && !!fromToken
+    enabled: isConnected && !!fromToken && !!address
   })
   
-  const { balance: toTokenBalance } = useTokenBalance({
+  const { balance: toTokenBalance, isLoading: isToBalanceLoading } = useTokenBalance({
     address,
     token: toToken,  
-    enabled: isConnected && !!toToken
+    enabled: isConnected && !!toToken && !!address
   })
 
   const availableTokens = chainId ? getTokensByChain(chainId) : []
@@ -195,7 +195,10 @@ export function SwapInterface() {
                 </div>
                 {fromToken && (
                   <div className="text-xs text-muted-foreground">
-                    Balance: {isConnected && fromTokenBalance ? fromTokenBalance.formatted : '0.00'} {fromToken.symbol}
+                    Balance: {
+                      isFromBalanceLoading ? 'Loading...' : 
+                      isConnected && fromTokenBalance ? fromTokenBalance.formatted : '0.00'
+                    } {fromToken.symbol}
                   </div>
                 )}
               </motion.div>
@@ -248,7 +251,10 @@ export function SwapInterface() {
                 </div>
                 {toToken && (
                   <div className="text-xs text-muted-foreground">
-                    Balance: {isConnected && toTokenBalance ? toTokenBalance.formatted : '0.00'} {toToken.symbol}
+                    Balance: {
+                      isToBalanceLoading ? 'Loading...' : 
+                      isConnected && toTokenBalance ? toTokenBalance.formatted : '0.00'
+                    } {toToken.symbol}
                   </div>
                 )}
               </motion.div>

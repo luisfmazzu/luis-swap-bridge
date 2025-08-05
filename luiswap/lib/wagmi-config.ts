@@ -1,5 +1,5 @@
 import { http, createConfig } from 'wagmi'
-import { mainnet, polygon, bsc, arbitrum, optimism, avalanche } from 'wagmi/chains'
+import { mainnet, polygon, bsc, arbitrum, optimism, avalanche, sepolia } from 'wagmi/chains'
 import { coinbaseWallet, metaMask, walletConnect } from 'wagmi/connectors'
 
 // WalletConnect/Reown Project ID - Get this from https://cloud.walletconnect.com/
@@ -15,6 +15,7 @@ export const supportedChains = [
   arbitrum,
   optimism,
   avalanche,
+  sepolia,
 ] as const
 
 // Chain configurations with RPC endpoints
@@ -54,6 +55,12 @@ const chainConfig = {
     rpcUrl: process.env.NEXT_PUBLIC_AVALANCHE_RPC_URL || avalanche.rpcUrls.default.http[0],
     blockExplorer: 'https://snowtrace.io',
     nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
+  },
+  [sepolia.id]: {
+    name: 'Sepolia',
+    rpcUrl: process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || sepolia.rpcUrls.default.http[0],
+    blockExplorer: 'https://sepolia.etherscan.io',
+    nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
   },
 }
 

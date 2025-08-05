@@ -54,6 +54,13 @@ export const NATIVE_TOKENS: Record<number, Token> = {
     decimals: 18,
     chainId: 43114,
   },
+  11155111: {
+    address: '0x0000000000000000000000000000000000000000',
+    symbol: 'ETH',
+    name: 'Sepolia Ether',
+    decimals: 18,
+    chainId: 11155111,
+  },
 }
 
 // Stablecoin tokens by chain
@@ -241,11 +248,27 @@ export const STABLECOIN_TOKENS: Record<number, Token[]> = {
       logoURI: 'https://assets.coingecko.com/coins/images/9956/thumb/4943.png',
     },
   ],
+  
+  // Sepolia Testnet (for testing)
+  11155111: [
+    {
+      address: '0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9',
+      symbol: 'WETH',
+      name: 'Wrapped Ether',
+      decimals: 18,
+      chainId: 11155111,
+      logoURI: 'https://assets.coingecko.com/coins/images/2518/thumb/weth.png',
+    },
+  ],
 }
 
 // Helper functions
 export const getTokensByChain = (chainId: number): Token[] => {
-  return STABLECOIN_TOKENS[chainId] || []
+  const stablecoins = STABLECOIN_TOKENS[chainId] || []
+  const nativeToken = NATIVE_TOKENS[chainId]
+  
+  // Return native token first, then stablecoins
+  return nativeToken ? [nativeToken, ...stablecoins] : stablecoins
 }
 
 export const getTokenByAddress = (chainId: number, address: Address): Token | undefined => {
@@ -263,7 +286,9 @@ export const getTokenBySymbol = (chainId: number, symbol: string): Token | undef
 }
 
 export const getAllTokens = (): Token[] => {
-  return Object.values(STABLECOIN_TOKENS).flat()
+  const allStablecoins = Object.values(STABLECOIN_TOKENS).flat()
+  const allNativeTokens = Object.values(NATIVE_TOKENS)
+  return [...allNativeTokens, ...allStablecoins]
 }
 
 export const getSupportedTokenSymbols = (chainId: number): string[] => {
