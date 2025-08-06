@@ -5,22 +5,89 @@ import { OtpType } from "@turnkey/sdk-react"
 import { decode, JwtPayload } from "jsonwebtoken"
 import { getAddress } from "viem"
 
+// Log server-side initialization
+console.log('🔧 TurnkeyServerClient: Server-side initialization started')
+console.log('🔧 TurnkeyServerClient: Creating ApiKeyStamper...')
+console.log('🔑 TURNKEY_API_PUBLIC_KEY length:', process.env.TURNKEY_API_PUBLIC_KEY?.length || 0)
+console.log('🔐 TURNKEY_API_PRIVATE_KEY length:', process.env.TURNKEY_API_PRIVATE_KEY?.length || 0)
+
+if (!process.env.TURNKEY_API_PUBLIC_KEY || !process.env.TURNKEY_API_PRIVATE_KEY) {
+  console.error('❌ FATAL: Missing Turnkey API credentials!')
+  console.error('❌ TURNKEY_API_PUBLIC_KEY exists:', !!process.env.TURNKEY_API_PUBLIC_KEY)
+  console.error('❌ TURNKEY_API_PRIVATE_KEY exists:', !!process.env.TURNKEY_API_PRIVATE_KEY)
+  console.error('❌ Current working directory:', process.cwd())
+  console.error('❌ NODE_ENV:', process.env.NODE_ENV)
+  throw new Error('Missing Turnkey API credentials. Please check your .env file.')
+}
+
+// Validate key formats (basic checks)
+if (!process.env.TURNKEY_API_PUBLIC_KEY.match(/^[0-9a-fA-F]{66}$/)) {
+  console.error('❌ TURNKEY_API_PUBLIC_KEY format appears invalid (should be 66 hex chars)')
+}
+if (!process.env.TURNKEY_API_PRIVATE_KEY.match(/^[0-9a-fA-F]{64}$/)) {
+  console.error('❌ TURNKEY_API_PRIVATE_KEY format appears invalid (should be 64 hex chars)')
+}
+
 const stamper = new ApiKeyStamper({
   apiPublicKey: process.env.TURNKEY_API_PUBLIC_KEY!,
   apiPrivateKey: process.env.TURNKEY_API_PRIVATE_KEY!,
 })
+console.log('✅ TurnkeyServerClient: ApiKeyStamper created successfully')
 
 console.log('🔧 TurnkeyServerClient: Initializing with config:')
 console.log('📊 API Base URL:', 'https://api.turnkey.com')
 console.log('🏢 Organization ID:', process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
 console.log('🔑 API Public Key exists:', !!process.env.TURNKEY_API_PUBLIC_KEY)
 console.log('🔐 API Private Key exists:', !!process.env.TURNKEY_API_PRIVATE_KEY)
+if (process.env.TURNKEY_API_PUBLIC_KEY) {
+  console.log('🔑 API Public Key preview:', process.env.TURNKEY_API_PUBLIC_KEY.substring(0, 20) + '...')
+} else {
+  console.error('❌ TURNKEY_API_PUBLIC_KEY is not loaded!')
+}
+if (process.env.TURNKEY_API_PRIVATE_KEY) {
+  console.log('🔐 API Private Key preview:', process.env.TURNKEY_API_PRIVATE_KEY.substring(0, 20) + '...')
+} else {
+  console.error('❌ TURNKEY_API_PRIVATE_KEY is not loaded!')
+}
+
+console.log('🔧 TurnkeyServerClient: Creating TurnkeyServerClient...')
+if (!process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID) {
+  console.error('❌ FATAL: Missing NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!')
+  throw new Error('Missing NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID. Please check your .env file.')
+}
 
 const client = new TurnkeyServerClient({
   apiBaseUrl: 'https://api.turnkey.com',
   organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
   stamper,
 })
+console.log('✅ TurnkeyServerClient: Client created successfully')
+
+// Test API connectivity on startup
+;(async () => {
+  try {
+    console.log('📋 Testing Turnkey API connectivity...')
+    const testTimeout = setTimeout(() => {
+      console.error('❌ API connectivity test timed out after 5s')
+    }, 5000)
+    
+    // Try a simple API call to test connectivity
+    const orgInfo = await client.getOrganization({
+      organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
+    })
+    
+    clearTimeout(testTimeout)
+    console.log('✅ Turnkey API connectivity test successful')
+    console.log('🏢 Organization name:', orgInfo.organization?.organizationName || 'Unknown')
+  } catch (testError) {
+    console.error('❌ Turnkey API connectivity test failed:', testError)
+    console.error('❌ This indicates invalid API keys or network issues')
+    if (testError instanceof Error) {
+      console.error('❌ Test error message:', testError.message)
+      console.error('❌ Test error stack:', testError.stack)
+    }
+  }
+})()
 
 
 function decodeJwt(credential: string): JwtPayload | null {
@@ -154,6 +221,7 @@ export async function createUserSubOrg({
   })
   
   const result = await client.createSubOrganization({
+    organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!, // Critical: specify parent organization
     subOrganizationName: subOrgName,
     rootQuorumThreshold: 1,
     rootUsers: [
@@ -210,16 +278,29 @@ export async function getSubOrgId(userId: string): Promise<string | null> {
 export async function getSubOrgIdByEmail(email: string): Promise<string | null> {
   try {
     console.log('🔍 Turnkey Server Action: Getting sub-org ID by email:', email)
-    // Search for existing user by email
-    const result = await client.getUsers({})
-    console.log('✅ Turnkey Server Action: Get users result, count:', result.users?.length || 0)
-    const user = result.users?.find(u => u.userEmail === email)
-    console.log('🔍 Turnkey Server Action: Found user:', user ? 'Yes' : 'No')
-    const userId = user?.userId || null
-    console.log('🔍 Turnkey Server Action: Returning user ID:', userId)
-    return userId
+    console.log('🔍 Searching within parent organization:', process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
+    
+    // Use Turnkey's getSubOrgIds API with email filter, scoped to our parent organization
+    const result = await client.getSubOrgIds({
+      organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
+      filterType: 'EMAIL',
+      filterValue: email,
+    })
+    
+    console.log('✅ Found sub-organization IDs:', result.organizationIds?.length || 0)
+    
+    if (result.organizationIds && result.organizationIds.length > 0) {
+      const subOrgId = result.organizationIds[0] // Take the first match
+      console.log('✅ Returning sub-org ID:', subOrgId)
+      return subOrgId
+    }
+    
+    console.log('🔍 No sub-organization found for email:', email)
+    return null
+    
   } catch (error) {
     console.error('❌ Turnkey Server Action: Error getting sub-org ID by email:', error)
+    console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
     return null
   }
 }
@@ -243,66 +324,78 @@ export async function initEmailAuth({
   baseUrl: string
 }) {
   try {
-    console.log('📧 Turnkey Server Action: Initiating email OTP auth for:', email)
-    console.log('📧 Turnkey Server Action: Target public key:', targetPublicKey)
-    console.log('📧 Turnkey Server Action: Base URL:', baseUrl)
+    console.log('📧 Turnkey Server Action: Following docs - CREATE USER first, then send OTP')
+    console.log('📧 Email:', email)
+    console.log('📧 Target public key preview:', targetPublicKey.substring(0, 20) + '...')
+    console.log('📧 Base URL:', baseUrl)
     
-    // First, find or create a sub-organization for this user
+    // Step 1: Create or find user sub-organization (following docs pattern)
     let organizationId: string
+    
     try {
-      console.log('🔍 Turnkey Server Action: Checking for existing sub-org...')
-      const existingOrgId = await Promise.race([
-        getSubOrgIdByEmail(email),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout after 10s')), 10000))
-      ]) as string | null
+      console.log('🔍 Checking for existing user sub-organization...')
+      // Try to find existing sub-org, but scope it to our parent organization
+      const existingSubOrgId = await getSubOrgIdByEmail(email)
       
-      if (existingOrgId) {
-        organizationId = existingOrgId
-        console.log('✅ Turnkey Server Action: Using existing sub-org:', organizationId)
+      if (existingSubOrgId) {
+        console.log('✅ Found existing sub-org:', existingSubOrgId)
+        organizationId = existingSubOrgId
       } else {
-        console.log('🏗️ Turnkey Server Action: Creating new sub-org...')
-        // Create sub-org first (needed for OTP)
-        const newUser = await Promise.race([
-          createUserSubOrg({ email }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout after 15s')), 15000))
-        ]) as any
-        
-        organizationId = newUser.organizationId
-        console.log('✅ Turnkey Server Action: Created new sub-org:', organizationId)
+        console.log('🏗️ No existing sub-org found, creating new user sub-organization...')
+        // Following docs: Create user sub-organization first
+        const result = await createUserSubOrg({ email })
+        organizationId = result.organizationId
+        console.log('✅ Created new sub-org:', organizationId)
       }
-    } catch (error) {
-      console.error('❌ Turnkey Server Action: Failed to get/create sub-org:', error)
-      console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
-      
-      if (error instanceof Error && error.message.includes('Timeout')) {
-        throw new Error('Turnkey API timeout - please check your network connection and API keys')
+    } catch (subOrgError) {
+      console.error('❌ Error handling sub-org:', subOrgError)
+      // If lookup fails, try creating a new sub-org as fallback
+      console.log('🏗️ Sub-org lookup failed, attempting to create new sub-org as fallback...')
+      try {
+        const result = await createUserSubOrg({ email })
+        organizationId = result.organizationId
+        console.log('✅ Created fallback sub-org:', organizationId)
+      } catch (createError) {
+        console.error('❌ Failed to create fallback sub-org:', createError)
+        throw new Error(`Could not create user sub-organization: ${createError instanceof Error ? createError.message : 'Unknown error'}`)
       }
-      throw error
     }
 
-    const magicLinkTemplate = getMagicLinkTemplate(
-      "auth",
-      email,
-      "email",
-      targetPublicKey,
-      baseUrl
-    )
+    // Step 2: Send OTP to the user (now we have proper sub-org context)
+    const magicLinkTemplate = `${baseUrl}/email-auth?userEmail=${email}&continueWith=email&credentialBundle=%s`
+    console.log('📧 Magic link template:', magicLinkTemplate)
+    console.log('📧 Calling client.initOtp with sub-org context:', organizationId)
 
-    if (organizationId?.length) {
-      const authResponse = await client.initOtp({
+    const authResponse = await Promise.race([
+      client.initOtp({
         userIdentifier: targetPublicKey,
         otpType: OtpType.Email,
         contact: email,
         emailCustomization: {
           magicLinkTemplate,
         },
-      })
-      console.log('✅ Turnkey Server Action: OTP initiated:', authResponse)
-      return authResponse
-    }
+      }),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('OTP init timeout after 15s')), 15000)
+      )
+    ])
+    
+    console.log('✅ Email OTP initiated successfully with proper sub-org context!')
+    console.log('📧 OTP ID:', authResponse.otpId)
+    return authResponse
+    
   } catch (error) {
     console.error('❌ Turnkey Server Action: Failed to init email OTP:', error)
-    throw new Error(`Failed to init email OTP: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
+    
+    if (error instanceof Error) {
+      if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+        throw new Error('Turnkey API timeout - please check your network connection')
+      }
+      throw new Error(`Failed to init email OTP: ${error.message}`)
+    }
+    
+    throw new Error('Failed to init email OTP: Unknown error')
   }
 }
 
@@ -315,12 +408,29 @@ export async function verifyOtp({
   otpCode: string
   publicKey: string
 }) {
-  const authResponse = await client.verifyOtp({
-    otpId,
-    otpCode,
-  })
+  try {
+    console.log('🔍 Turnkey Server Action: Starting verifyOtp')
+    console.log('🔍 OTP ID preview:', otpId.substring(0, 20) + '...')
+    console.log('🔍 OTP Code preview:', otpCode.substring(0, 20) + '...')
+    console.log('🔍 Public key preview:', publicKey.substring(0, 20) + '...')
+    
+    console.log('🔐 Calling client.verifyOtp...')
+    const authResponse = await client.verifyOtp({
+      otpId,
+      otpCode,
+    })
+    
+    console.log('✅ verifyOtp successful!')
+    console.log('🔐 Verification token exists:', !!authResponse.verificationToken)
+    console.log('🔐 Verification token preview:', authResponse.verificationToken?.substring(0, 20) + '...')
 
-  return authResponse
+    return authResponse
+  } catch (error) {
+    console.error('❌ verifyOtp failed:', error)
+    console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    throw error
+  }
 }
 
 export async function otpLogin({
@@ -332,22 +442,64 @@ export async function otpLogin({
   verificationToken: string
   email: string
 }) {
-  const subOrgId = await getSubOrgIdByEmail(email)
+  try {
+    console.log('🔐 Turnkey Server Action: Starting otpLogin (following docs pattern)')
+    console.log('🔐 Email:', email)
+    console.log('🔐 Verification token preview:', verificationToken.substring(0, 20) + '...')
+    console.log('🔐 Public key preview:', publicKey.substring(0, 20) + '...')
+    
+    // Following docs: Handle sub-org creation/lookup AFTER OTP verification
+    console.log('🔍 Checking if user has existing sub-org...')
+    let subOrgId: string
+    
+    try {
+      // Try to find existing sub-org
+      const existingSubOrgId = await getSubOrgIdByEmail(email)
+      if (existingSubOrgId) {
+        console.log('✅ Found existing sub-org:', existingSubOrgId)
+        subOrgId = existingSubOrgId
+      } else {
+        console.log('🏗️ No existing sub-org found, creating new one...')
+        // Create sub-org now, after successful OTP verification
+        const newUser = await createUserSubOrg({ email })
+        subOrgId = newUser.organizationId
+        console.log('✅ Created new sub-org:', subOrgId)
+      }
+    } catch (subOrgError) {
+      console.error('❌ Failed to get/create sub-org:', subOrgError)
+      // If sub-org lookup/creation fails, try creating a new one
+      console.log('🏗️ Attempting to create fresh sub-org as fallback...')
+      try {
+        const newUser = await createUserSubOrg({ email })
+        subOrgId = newUser.organizationId
+        console.log('✅ Created fallback sub-org:', subOrgId)
+      } catch (createError) {
+        console.error('❌ Failed to create fallback sub-org:', createError)
+        throw new Error(`Could not create sub-organization for user: ${createError instanceof Error ? createError.message : 'Unknown error'}`)
+      }
+    }
 
-  if (!subOrgId) {
-    throw new Error("Could not find suborg by email")
-  }
+    console.log('🔐 Calling client.otpLogin with sub-org:', subOrgId)
+    const sessionResponse = await client.otpLogin({
+      verificationToken,
+      publicKey,
+      organizationId: subOrgId,
+    })
+    
+    console.log('✅ otpLogin successful!')
+    console.log('🔐 Session response votes:', sessionResponse.activity.votes?.length || 0)
+    console.log('🔐 Session exists:', !!sessionResponse.session)
 
-  const sessionResponse = await client.otpLogin({
-    verificationToken,
-    publicKey,
-    organizationId: subOrgId,
-  })
-
-  return {
-    userId: sessionResponse.activity.votes[0]?.userId,
-    session: sessionResponse.session,
-    organizationId: subOrgId,
+    return {
+      userId: sessionResponse.activity.votes[0]?.userId,
+      session: sessionResponse.session,
+      organizationId: subOrgId,
+    }
+  } catch (error) {
+    console.error('❌ otpLogin failed:', error)
+    console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    throw error
   }
 }
 

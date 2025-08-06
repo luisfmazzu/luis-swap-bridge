@@ -31,3 +31,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Demo and reference projects
+demo-embedded-wallet/
+
+# Claude files
+.claude/
+.mcp.json
+CLAUDE.md

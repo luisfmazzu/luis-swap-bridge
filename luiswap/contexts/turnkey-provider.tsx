@@ -18,14 +18,12 @@ const getRuntimeRpId = () =>
     : turnkeyConfig.passkey.rpId
 
 export function TurnkeyProvider({ children }: TurnkeyProviderProps) {
-  // Log all Turnkey environment variables for debugging
-  console.log('🔧 TurnkeyProvider: Environment Variables Check')
+  // Log only CLIENT-SIDE environment variables (server-side vars won't be accessible here)
+  console.log('🔧 TurnkeyProvider: Client-Side Environment Variables Check')
   console.log('📊 NEXT_PUBLIC_TURNKEY_API_BASE_URL:', process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL)
   console.log('🏢 NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID:', process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
   console.log('🔑 NEXT_PUBLIC_TURNKEY_RP_ID:', process.env.NEXT_PUBLIC_TURNKEY_RP_ID)
-  console.log('🔒 TURNKEY_API_PUBLIC_KEY exists:', !!process.env.TURNKEY_API_PUBLIC_KEY)
-  console.log('🔐 TURNKEY_API_PRIVATE_KEY exists:', !!process.env.TURNKEY_API_PRIVATE_KEY)
-  console.log('🌐 ALCHEMY_API_KEY exists:', !!process.env.ALCHEMY_API_KEY)
+  console.log('ℹ️ Note: Server-side API keys (TURNKEY_API_PUBLIC_KEY, TURNKEY_API_PRIVATE_KEY) are not accessible in browser and should show as undefined')
   
   const config = {
     rpId: getRuntimeRpId(),

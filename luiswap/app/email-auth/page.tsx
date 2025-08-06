@@ -45,7 +45,10 @@ function EmailAuthContent() {
         console.log('📧 EmailAuth: Verification successful, redirecting to swap')
         setTimeout(() => router.push('/swap'), 1000) // Small delay to ensure state is updated
       }).catch((error) => {
-        console.error('📧 EmailAuth: Verification failed:', error)
+        console.error('❌ EmailAuth: CRITICAL - Verification failed:', error)
+        console.error('❌ EmailAuth: Error type:', typeof error)
+        console.error('❌ EmailAuth: Error message:', error?.message || 'No message')
+        console.error('❌ EmailAuth: Error stack:', error?.stack || 'No stack trace')
         setIsProcessing(false)
         processedRef.current = false // Allow retry
       })

@@ -245,16 +245,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch({ type: "LOADING", payload: true })
 
     try {
-      // Ensure we have a valid key pair - generate new one if needed
-      let publicKey = await indexedDbClient?.getPublicKey()
+      console.log('📧 AuthProvider: Starting initEmailLogin for:', email)
+      
+      // Ensure we have a key pair ready - this is the difference from the demo
+      // Demo assumes key pair exists, but we need to ensure it's available
+      await indexedDbClient?.resetKeyPair()
+      const publicKey = await indexedDbClient?.getPublicKey()
       if (!publicKey) {
-        console.log('🔑 AuthProvider: No public key found, generating new key pair')
-        await indexedDbClient?.resetKeyPair()
-        publicKey = await indexedDbClient?.getPublicKey()
-        
-        if (!publicKey) {
-          throw new Error("Failed to generate public key")
-        }
+        console.error('❌ AuthProvider: No public key found even after reset')
+        throw new Error("No public key found")
       }
       
       console.log('✅ AuthProvider: Using public key for email auth:', publicKey.substring(0, 20) + '...')
@@ -270,6 +269,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error("No public key found")
       }
 
+      console.log('📧 AuthProvider: Calling initEmailAuth server action...')
       const response = await initEmailAuth({
         email,
         targetPublicKey,
@@ -280,11 +280,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Persist otpId locally so it can be reused after page reloads
         if (response.otpId) {
           setOtpIdInStorage(response.otpId)
+          console.log('📧 AuthProvider: OTP ID stored:', response.otpId.substring(0, 20) + '...')
         }
         dispatch({ type: "INIT_EMAIL_AUTH" })
+        console.log('📧 AuthProvider: Email auth initiated, redirecting to email-auth page')
         router.push(`/email-auth?userEmail=${encodeURIComponent(email)}`)
       }
     } catch (error: any) {
+      console.error('❌ AuthProvider: initEmailLogin error:', error)
       dispatch({ type: "ERROR", payload: error.message })
     } finally {
       dispatch({ type: "LOADING", payload: false })
@@ -346,46 +349,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       dispatch({ type: "LOADING", payload: true })
 
       try {
-        console.log('🔍 AuthProvider: Starting email completion key validation')
-        console.log('🔍 IndexedDB client available:', !!indexedDbClient)
+        console.log('📧 AuthProvider: Starting completeEmailAuth')
+        console.log('📧 IndexedDB client available:', !!indexedDbClient)
         
+        // Ensure IndexedDB client is available (should be guaranteed by email-auth page dependency check)
         if (!indexedDbClient) {
-          console.error('❌ AuthProvider: CRITICAL - IndexedDB client is null during email completion')
-          console.error('❌ This should not happen if TurnkeyProvider is properly initialized')
-          throw new Error("IndexedDB client not available for email completion")
+          console.error('❌ AuthProvider: IndexedDB client is null during completion')
+          throw new Error("IndexedDB client not available")
         }
         
-        // Ensure we have a valid key pair for email completion
-        console.log('🔍 AuthProvider: Attempting to get public key for email completion...')
-        let publicKeyCompressed = await indexedDbClient.getPublicKey()
-        
+        // Follow demo pattern: directly get public key, throw error if not available
+        const publicKeyCompressed = await indexedDbClient.getPublicKey()
         if (!publicKeyCompressed) {
-          console.log('🔑 AuthProvider: No public key found during completion, generating new key pair')
-          console.log('🔄 AuthProvider: Calling resetKeyPair() during email completion...')
-          
-          try {
-            await indexedDbClient.resetKeyPair()
-            console.log('✅ AuthProvider: resetKeyPair() completed during email completion')
-            
-            publicKeyCompressed = await indexedDbClient.getPublicKey()
-            
-            if (!publicKeyCompressed) {
-              console.error('❌ AuthProvider: CRITICAL - getPublicKey() returned null after resetKeyPair()')
-              console.error('❌ IndexedDB client configuration or environment issue detected')
-              throw new Error("Failed to generate public key for email completion - IndexedDB client malfunction")
-            }
-            
-            console.log('✅ AuthProvider: Successfully generated new key pair during email completion')
-          } catch (resetError) {
-            console.error('❌ AuthProvider: resetKeyPair() failed during email completion')
-            console.error('❌ Reset error:', resetError)
-            console.error('❌ Reset error message:', resetError instanceof Error ? resetError.message : 'Unknown error')
-            throw new Error(`Failed to reset key pair during email completion: ${resetError instanceof Error ? resetError.message : 'Unknown error'}`)
-          }
+          console.error('❌ AuthProvider: No public key found during email completion')
+          throw new Error("No public key found")
         }
         
-        console.log('✅ AuthProvider: Using public key for email completion')
-        console.log('🔑 Public key preview:', publicKeyCompressed.substring(0, 20) + '...')
+        console.log('✅ AuthProvider: Using public key for email completion:', publicKeyCompressed.substring(0, 20) + '...')
         // We keep the compressed key form for downstream calls
 
         // Retrieve persisted otpId
@@ -394,18 +374,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!storedOtpId) {
           throw new Error("OTP identifier not found. Please restart sign-in.")
         }
+        
+        console.log('📧 AuthProvider: Verifying OTP with stored ID:', storedOtpId.substring(0, 20) + '...')
         const authResponse = await verifyOtp({
           otpId: storedOtpId,
           publicKey: publicKeyCompressed,
           otpCode: credentialBundle,
         })
 
+        console.log('📧 AuthProvider: OTP verified, logging in...')
         const { session, userId, organizationId } = await otpLogin({
           email: userEmail as Email,
           publicKey: publicKeyCompressed,
           verificationToken: authResponse.verificationToken,
         })
 
+        console.log('📧 AuthProvider: Login successful, setting session...')
         await indexedDbClient?.loginWithSession(session || "")
 
         // Clear persisted otpId after successful login
@@ -434,9 +418,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setTurnkeyConnection(user.addresses[0], 'email')
         }
 
+        console.log('✅ AuthProvider: Email authentication completed successfully')
         router.push("/swap")
       } catch (error: any) {
-        console.error("[completeEmailAuth] Error:", error)
+        console.error("❌ AuthProvider: completeEmailAuth error:", error)
         dispatch({ type: "ERROR", payload: error.message })
       } finally {
         dispatch({ type: "LOADING", payload: false })
