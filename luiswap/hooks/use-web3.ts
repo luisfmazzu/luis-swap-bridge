@@ -1,8 +1,9 @@
 'use client'
 
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useEffect } from 'react'
 import { CHAIN_INFO, isChainSupported as checkChainSupported, getChainInfo } from '@/lib/constants/chains'
+import { useWalletStore, useActiveWallet } from '@/lib/stores/wallet-store'
 
 export function useWeb3() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount()
@@ -10,6 +11,28 @@ export function useWeb3() {
   const { disconnect } = useDisconnect()
   const chainId = useChainId()
   const { switchChain, isPending: isSwitchPending } = useSwitchChain()
+
+  // Wallet store integration
+  const { 
+    setWagmiConnection, 
+    setWagmiConnecting, 
+    disconnectWagmi,
+    setActiveConnection,
+  } = useWalletStore()
+  const activeWallet = useActiveWallet()
+
+  // Sync wagmi state with store
+  useEffect(() => {
+    if (isConnected && address) {
+      setWagmiConnection(address, chainId)
+    } else if (!isConnected) {
+      disconnectWagmi()
+    }
+  }, [isConnected, address, chainId, setWagmiConnection, disconnectWagmi])
+
+  useEffect(() => {
+    setWagmiConnecting(isConnecting || isReconnecting || isConnectPending)
+  }, [isConnecting, isReconnecting, isConnectPending, setWagmiConnecting])
 
   // Current chain info
   const currentChain = useMemo(() => {
@@ -34,8 +57,9 @@ export function useWeb3() {
     
     if (connector) {
       connect({ connector })
+      setActiveConnection('wagmi')
     }
-  }, [connect, connectors])
+  }, [connect, connectors, setActiveConnection])
 
   // Switch to a specific chain
   const switchToChain = useCallback((targetChainId: number) => {
@@ -63,6 +87,12 @@ export function useWeb3() {
     connectWallet('coinbaseWallet')
   }, [connectWallet])
 
+  // Enhanced disconnect that handles both wagmi and store
+  const disconnectWallet = useCallback(() => {
+    disconnect()
+    disconnectWagmi()
+  }, [disconnect, disconnectWagmi])
+
   // Format address for display
   const formatAddress = useCallback((addr?: string) => {
     if (!addr) return ''
@@ -76,25 +106,34 @@ export function useWeb3() {
     return 'disconnected'
   }, [isConnected, isConnecting, isReconnecting, isConnectPending])
 
+  // Return unified state when possible, favoring active wallet
+  const unifiedAddress = activeWallet?.address || address
+  const unifiedIsConnected = activeWallet?.isConnected || isConnected
+  const unifiedIsConnecting = activeWallet?.isConnecting || isConnecting || isReconnecting || isConnectPending
+  const unifiedChainId = activeWallet?.chainId || chainId
+
   return {
-    // Connection state
-    address,
-    isConnected,
-    isConnecting: isConnecting || isReconnecting || isConnectPending,
+    // Connection state (unified when active wallet is present)
+    address: unifiedAddress,
+    isConnected: unifiedIsConnected,
+    isConnecting: unifiedIsConnecting,
     connectionStatus,
     
     // Chain state
-    chainId,
+    chainId: unifiedChainId,
     currentChain,
     isChainSupported,
     isSwitchPending,
+    
+    // Active wallet info
+    activeWallet,
     
     // Actions
     connect: connectWallet,
     connectMetaMask,
     connectWalletConnect,
     connectCoinbaseWallet,
-    disconnect,
+    disconnect: disconnectWallet,
     switchToChain,
     
     // Connectors

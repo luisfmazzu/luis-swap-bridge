@@ -6,7 +6,10 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Luiswap',
-  description: 'React, Wagmi, Turnkey'
+  description: 'React, Wagmi, Turnkey',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
