@@ -95,80 +95,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const SESSION_EXPIRY = "900" // This is in seconds
   const WARNING_BUFFER = 30 // seconds before expiry to show warning
 
-  // Initialize IndexedDB client to ensure key pair is available
-  useEffect(() => {
-    const initializeIndexedDB = async () => {
-      console.log('🔧 AuthProvider: Starting IndexedDB client initialization')
-      console.log('🔍 IndexedDB client available:', !!indexedDbClient)
-      
-      if (!indexedDbClient) {
-        console.error('❌ AuthProvider: IndexedDB client is null/undefined')
-        console.error('❌ This suggests TurnkeyProvider configuration issue')
-        return
-      }
-      
-      try {
-        console.log('🔧 AuthProvider: Initializing IndexedDB client')
-        
-        // Try to get existing public key
-        console.log('🔍 AuthProvider: Attempting to get existing public key...')
-        let publicKey = await indexedDbClient.getPublicKey()
-        
-        if (!publicKey) {
-          console.log('🔑 AuthProvider: No existing key found, generating new key pair')
-          console.log('🔄 AuthProvider: Calling resetKeyPair()...')
-          await indexedDbClient.resetKeyPair()
-          
-          console.log('🔍 AuthProvider: Getting public key after reset...')
-          publicKey = await indexedDbClient.getPublicKey()
-          
-          if (!publicKey) {
-            console.error('❌ AuthProvider: CRITICAL - Failed to generate public key even after reset')
-            console.error('❌ This indicates a fundamental IndexedDB client configuration issue')
-            return
-          }
-          
-          console.log('✅ AuthProvider: New key pair generated successfully')
-          console.log('🔑 Public key preview:', publicKey.substring(0, 20) + '...')
-        } else {
-          console.log('✅ AuthProvider: Existing key pair found')
-          console.log('🔑 Public key preview:', publicKey.substring(0, 20) + '...')
-        }
-        
-        console.log('✨ AuthProvider: IndexedDB client initialization completed successfully')
-        
-      } catch (error) {
-        console.error('❌ AuthProvider: Failed to initialize IndexedDB client')
-        console.error('❌ Error details:', error)
-        console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error')
-        console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
-        
-        try {
-          console.log('🔄 AuthProvider: Attempting recovery with resetKeyPair...')
-          await indexedDbClient.resetKeyPair()
-          console.log('✅ AuthProvider: Key pair reset completed after error')
-          
-          const recoveryKey = await indexedDbClient.getPublicKey()
-          if (recoveryKey) {
-            console.log('✅ AuthProvider: Recovery successful, key generated:', recoveryKey.substring(0, 20) + '...')
-          } else {
-            console.error('❌ AuthProvider: Recovery failed - still no public key after reset')
-          }
-        } catch (resetError) {
-          console.error('❌ AuthProvider: Failed to reset key pair during recovery')
-          console.error('❌ Reset error:', resetError)
-          console.error('❌ Reset error message:', resetError instanceof Error ? resetError.message : 'Unknown reset error')
-        }
-      }
-    }
-
-    // Wait a bit for TurnkeyProvider to fully initialize
-    const timeoutId = setTimeout(() => {
-      initializeIndexedDB()
-    }, 100)
-
-    return () => clearTimeout(timeoutId)
-  }, [indexedDbClient])
+  // Note: Demo doesn't pre-initialize IndexedDB - it waits for auth operations to happen
+  // This matches the demo's reactive approach vs our previous proactive approach
 
   // Load persisted session on mount
   useEffect(() => {

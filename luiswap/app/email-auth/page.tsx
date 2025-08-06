@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-provider"
+import { useTurnkey } from "@turnkey/sdk-react"
 import { Loader2 } from "lucide-react"
 
 import {
@@ -16,6 +17,7 @@ function EmailAuthContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { completeEmailAuth, loading, error, user } = useAuth()
+  const { indexedDbClient } = useTurnkey() // Critical: Wait for IndexedDB client like the demo
   const [isProcessing, setIsProcessing] = useState(false)
   const processedRef = useRef(false)
   
@@ -31,9 +33,11 @@ function EmailAuthContent() {
     if (processedRef.current || isProcessing) return
     
     console.log('📧 EmailAuth: Component mounted with params:', { userEmail, continueWith, credentialBundle: credentialBundle?.substring(0, 50) + '...' })
+    console.log('📧 EmailAuth: IndexedDB client available:', !!indexedDbClient)
     
-    if (userEmail && continueWith && credentialBundle && !user) {
-      console.log('📧 EmailAuth: All parameters present, starting verification')
+    // Wait for IndexedDB client to be available (like demo does)
+    if (userEmail && continueWith && credentialBundle && indexedDbClient && !user) {
+      console.log('📧 EmailAuth: All parameters present AND IndexedDB client ready, starting verification')
       processedRef.current = true
       setIsProcessing(true)
       
@@ -46,14 +50,15 @@ function EmailAuthContent() {
         processedRef.current = false // Allow retry
       })
     } else {
-      console.log('📧 EmailAuth: Missing parameters or user already authenticated:', { 
+      console.log('📧 EmailAuth: Waiting for requirements:', { 
         userEmail: !!userEmail, 
         continueWith: !!continueWith, 
         credentialBundle: !!credentialBundle,
+        indexedDbClient: !!indexedDbClient,
         userExists: !!user
       })
     }
-  }, [userEmail, continueWith, credentialBundle, user, completeEmailAuth, router, isProcessing])
+  }, [userEmail, continueWith, credentialBundle, indexedDbClient, user, completeEmailAuth, router, isProcessing])
 
   // Redirect if user is already authenticated
   useEffect(() => {
