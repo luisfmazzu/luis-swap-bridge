@@ -2,14 +2,14 @@
 const NEXT_PUBLIC_TURNKEY_API_BASE_URL = process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL || 'https://api.turnkey.com'
 const NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID = process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || ''
 const NEXT_PUBLIC_TURNKEY_RP_ID = process.env.NEXT_PUBLIC_TURNKEY_RP_ID || "localhost"
-const NEXT_PUBLIC_ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || ''
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || ''
 
-// Log configuration values for debugging
+// Log configuration values for debugging (safe to log - no sensitive data)
 console.log('🔧 TurnkeyConfig: Environment values loaded:')
 console.log('📊 NEXT_PUBLIC_TURNKEY_API_BASE_URL:', NEXT_PUBLIC_TURNKEY_API_BASE_URL)
 console.log('🏢 NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID:', NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
 console.log('🔑 NEXT_PUBLIC_TURNKEY_RP_ID:', NEXT_PUBLIC_TURNKEY_RP_ID)
-console.log('🌐 NEXT_PUBLIC_ALCHEMY_API_KEY exists:', !!NEXT_PUBLIC_ALCHEMY_API_KEY)
+console.log('🌐 ALCHEMY_API_KEY exists:', !!ALCHEMY_API_KEY)
 
 export const turnkeyConfig = {
   // Use API base URL as both base URL and organizationId endpoint
@@ -36,5 +36,5 @@ export const turnkeyConfig = {
   passkey: {
     rpId: NEXT_PUBLIC_TURNKEY_RP_ID,
   },
-  rpcUrl: NEXT_PUBLIC_ALCHEMY_API_KEY ? `https://eth-sepolia.g.alchemy.com/v2/${NEXT_PUBLIC_ALCHEMY_API_KEY}` : '',
+  rpcUrl: ALCHEMY_API_KEY ? `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}` : '',
 }

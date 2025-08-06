@@ -25,7 +25,7 @@ export function TurnkeyProvider({ children }: TurnkeyProviderProps) {
   console.log('🔑 NEXT_PUBLIC_TURNKEY_RP_ID:', process.env.NEXT_PUBLIC_TURNKEY_RP_ID)
   console.log('🔒 TURNKEY_API_PUBLIC_KEY exists:', !!process.env.TURNKEY_API_PUBLIC_KEY)
   console.log('🔐 TURNKEY_API_PRIVATE_KEY exists:', !!process.env.TURNKEY_API_PRIVATE_KEY)
-  console.log('🌐 NEXT_PUBLIC_ALCHEMY_API_KEY exists:', !!process.env.NEXT_PUBLIC_ALCHEMY_API_KEY)
+  console.log('🌐 ALCHEMY_API_KEY exists:', !!process.env.ALCHEMY_API_KEY)
   
   const config = {
     rpId: getRuntimeRpId(),
@@ -44,11 +44,30 @@ export function TurnkeyProvider({ children }: TurnkeyProviderProps) {
   if (!config.defaultOrganizationId) {
     console.error('❌ TurnkeyProvider: CRITICAL ERROR - defaultOrganizationId is empty!')
     console.error('❌ Make sure NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID is set in your .env file')
+    
+    // Return error state instead of broken provider
+    return (
+      <div style={{ padding: '20px', background: '#ff0000', color: 'white', margin: '20px' }}>
+        <h3>Turnkey Configuration Error</h3>
+        <p>NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID is missing from environment variables.</p>
+        <p>Please check your .env file and restart the server.</p>
+      </div>
+    )
   }
   
   if (!config.apiBaseUrl) {
     console.error('❌ TurnkeyProvider: CRITICAL ERROR - apiBaseUrl is empty!')
+    
+    return (
+      <div style={{ padding: '20px', background: '#ff0000', color: 'white', margin: '20px' }}>
+        <h3>Turnkey Configuration Error</h3>
+        <p>NEXT_PUBLIC_TURNKEY_API_BASE_URL is missing from environment variables.</p>
+        <p>Please check your .env file and restart the server.</p>
+      </div>
+    )
   }
+  
+  console.log('✅ TurnkeyProvider: Configuration validated, initializing SDK...')
   
   return (
     <TurnkeySDKProvider config={config}>

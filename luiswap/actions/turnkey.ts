@@ -10,6 +10,12 @@ const stamper = new ApiKeyStamper({
   apiPrivateKey: process.env.TURNKEY_API_PRIVATE_KEY!,
 })
 
+console.log('🔧 TurnkeyServerClient: Initializing with config:')
+console.log('📊 API Base URL:', 'https://api.turnkey.com')
+console.log('🏢 Organization ID:', process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
+console.log('🔑 API Public Key exists:', !!process.env.TURNKEY_API_PUBLIC_KEY)
+console.log('🔐 API Private Key exists:', !!process.env.TURNKEY_API_PRIVATE_KEY)
+
 const client = new TurnkeyServerClient({
   apiBaseUrl: 'https://api.turnkey.com',
   organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
@@ -239,22 +245,38 @@ export async function initEmailAuth({
   try {
     console.log('📧 Turnkey Server Action: Initiating email OTP auth for:', email)
     console.log('📧 Turnkey Server Action: Target public key:', targetPublicKey)
+    console.log('📧 Turnkey Server Action: Base URL:', baseUrl)
     
     // First, find or create a sub-organization for this user
     let organizationId: string
     try {
-      const existingOrgId = await getSubOrgIdByEmail(email)
+      console.log('🔍 Turnkey Server Action: Checking for existing sub-org...')
+      const existingOrgId = await Promise.race([
+        getSubOrgIdByEmail(email),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout after 10s')), 10000))
+      ]) as string | null
+      
       if (existingOrgId) {
         organizationId = existingOrgId
         console.log('✅ Turnkey Server Action: Using existing sub-org:', organizationId)
       } else {
+        console.log('🏗️ Turnkey Server Action: Creating new sub-org...')
         // Create sub-org first (needed for OTP)
-        const newUser = await createUserSubOrg({ email })
+        const newUser = await Promise.race([
+          createUserSubOrg({ email }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout after 15s')), 15000))
+        ]) as any
+        
         organizationId = newUser.organizationId
         console.log('✅ Turnkey Server Action: Created new sub-org:', organizationId)
       }
     } catch (error) {
       console.error('❌ Turnkey Server Action: Failed to get/create sub-org:', error)
+      console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
+      
+      if (error instanceof Error && error.message.includes('Timeout')) {
+        throw new Error('Turnkey API timeout - please check your network connection and API keys')
+      }
       throw error
     }
 
