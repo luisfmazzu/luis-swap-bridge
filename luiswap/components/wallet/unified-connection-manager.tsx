@@ -22,7 +22,6 @@ import {
 import { motion } from 'framer-motion'
 import { useWeb3 } from '@/hooks/use-web3'
 import { useActiveWallet, useWalletStore } from '@/lib/stores/wallet-store'
-import { useTurnkey } from '@/hooks/use-turnkey'
 import { getChainName, getChainColor } from '@/lib/constants/chains'
 import { WalletSelectionModal } from './wallet-selection-modal'
 import { TurnkeyAuthModal } from './turnkey-auth-modal'
@@ -46,8 +45,7 @@ function UnifiedConnectionManagerContent({
   const [showTraditionalWallet, setShowTraditionalWallet] = useState(false)
   
   const activeWallet = useActiveWallet()
-  const { disconnectAll } = useWalletStore()
-  const { disconnect: disconnectTurnkey } = useTurnkey()
+  const { disconnectAll, disconnectTurnkey } = useWalletStore()
   const { disconnect: disconnectWagmi, currentChain, isChainSupported, formatAddress } = useWeb3()
 
   // Get the current chain info based on active wallet
@@ -73,10 +71,10 @@ function UnifiedConnectionManagerContent({
   }
 
   const handleDisconnect = () => {
-    if (activeWallet?.type === 'turnkey') {
-      disconnectTurnkey()
-    } else if (activeWallet?.type === 'wagmi') {
+    if (activeWallet?.type === 'wagmi') {
       disconnectWagmi()
+    } else if (activeWallet?.type === 'turnkey') {
+      disconnectTurnkey()
     } else {
       // Fallback: disconnect all
       disconnectAll()
@@ -98,9 +96,12 @@ function UnifiedConnectionManagerContent({
     setShowTraditionalWallet(true)
   }
 
-  const handleTurnkeySuccess = () => {
+  const handleTurnkeySuccess = (address: string) => {
     setShowTurnkeyAuth(false)
+    // In a real implementation, you would connect this to your wallet store
+    console.log('Turnkey connected with address:', address)
   }
+
 
   const handleTraditionalSuccess = () => {
     setShowTraditionalWallet(false)
@@ -123,11 +124,6 @@ function UnifiedConnectionManagerContent({
                 />
               )}
               <span className="font-mono text-sm">{formatAddress(address)}</span>
-              {activeWallet?.type === 'turnkey' && (
-                <Badge variant="secondary" className="text-xs px-1 py-0">
-                  Turnkey
-                </Badge>
-              )}
               <ChevronDown className="h-3 w-3" />
             </div>
           </Button>
@@ -149,9 +145,15 @@ function UnifiedConnectionManagerContent({
                 <Badge variant="outline" className="border-border">
                   {activeWallet?.type === 'turnkey' ? 'Turnkey Wallet' : 'Traditional Wallet'}
                 </Badge>
-                {activeWallet?.type === 'turnkey' && (
+                {activeWallet?.type === 'turnkey' && 'authMethod' in activeWallet && activeWallet.authMethod && (
                   <Badge variant="secondary" className="text-xs">
-                    Keyless
+                    {activeWallet.authMethod === 'passkey' ? 'Passkey' : 
+                     activeWallet.authMethod === 'email' ? 'Email' :
+                     activeWallet.authMethod === 'google' ? 'Google' :
+                     activeWallet.authMethod === 'apple' ? 'Apple' :
+                     activeWallet.authMethod === 'facebook' ? 'Facebook' :
+                     activeWallet.authMethod === 'wallet' ? 'Wallet Import' :
+                     activeWallet.authMethod}
                   </Badge>
                 )}
               </div>

@@ -3,7 +3,6 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { Web3ErrorBoundary } from '@/components/web3/web3-error-boundary'
 import { loadWagmiConfig } from '@/lib/dynamic-wagmi-config'
-// import { TurnkeyProvider } from '@/contexts/turnkey-context'
 
 // Dynamic imports for wagmi and react-query
 let WagmiProvider: any = null
@@ -159,7 +158,6 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     <Web3ErrorBoundary>
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
-          {/* TurnkeyProvider temporarily removed to fix initialization issues */}
           {children}
         </QueryClientProvider>
       </WagmiProvider>

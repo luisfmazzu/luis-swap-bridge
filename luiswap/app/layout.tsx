@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { DynamicWeb3Provider } from '@/components/web3/dynamic-web3-provider'
+import { TurnkeyProvider } from '@/contexts/turnkey-provider'
+import { AuthProvider } from '@/contexts/auth-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -29,9 +31,13 @@ html {
         `}</style>
       </head>
       <body>
-        <DynamicWeb3Provider>
-          {children}
-        </DynamicWeb3Provider>
+        <TurnkeyProvider>
+          <AuthProvider>
+            <DynamicWeb3Provider>
+              {children}
+            </DynamicWeb3Provider>
+          </AuthProvider>
+        </TurnkeyProvider>
       </body>
     </html>
   )

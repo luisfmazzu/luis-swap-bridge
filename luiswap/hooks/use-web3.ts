@@ -21,14 +21,19 @@ export function useWeb3() {
   } = useWalletStore()
   const activeWallet = useActiveWallet()
 
-  // Sync wagmi state with store
+  // Sync wagmi state with store - only sync when wagmi is actively connected
+  // Don't auto-disconnect when Turnkey is active
   useEffect(() => {
     if (isConnected && address) {
-      setWagmiConnection(address, chainId)
-    } else if (!isConnected) {
+      // Only update wagmi connection if Turnkey isn't the active connection
+      if (activeWallet?.type !== 'turnkey') {
+        setWagmiConnection(address, chainId)
+      }
+    } else if (!isConnected && activeWallet?.type === 'wagmi') {
+      // Only disconnect wagmi in store if it was the active connection
       disconnectWagmi()
     }
-  }, [isConnected, address, chainId, setWagmiConnection, disconnectWagmi])
+  }, [isConnected, address, chainId, setWagmiConnection, disconnectWagmi, activeWallet?.type])
 
   useEffect(() => {
     setWagmiConnecting(isConnecting || isReconnecting || isConnectPending)
@@ -69,7 +74,7 @@ export function useWeb3() {
       throw new Error(`Chain ${targetChainId} is not supported`)
     }
 
-    switchChain({ chainId: targetChainId })
+    switchChain({ chainId: targetChainId as any })
   }, [chainId, switchChain])
 
   // Connect to MetaMask specifically

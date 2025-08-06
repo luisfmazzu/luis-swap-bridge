@@ -20,12 +20,12 @@ interface WalletSelectionModalProps {
   onSelectTraditional: () => void
 }
 
-type ModalStep = 'selection' | 'turnkey' | 'traditional'
+type ModalStep = 'selection' | 'traditional'
 
 export function WalletSelectionModal({ 
   open, 
   onOpenChange, 
-  onSelectTurnkey, 
+  onSelectTurnkey,
   onSelectTraditional 
 }: WalletSelectionModalProps) {
   const [step, setStep] = useState<ModalStep>('selection')
@@ -35,8 +35,8 @@ export function WalletSelectionModal({
     onOpenChange(false)
   }
 
+
   const handleTurnkeySelect = () => {
-    setStep('turnkey')
     onSelectTurnkey()
   }
 
@@ -148,47 +148,6 @@ export function WalletSelectionModal({
 
               <div className="text-center text-xs text-muted-foreground mt-6">
                 By connecting, you agree to our Terms of Service and Privacy Policy
-              </div>
-            </motion.div>
-          )}
-
-          {step === 'turnkey' && (
-            <motion.div
-              key="turnkey"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <DialogHeader>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleBack}
-                    className="p-1 h-8 w-8"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <div>
-                    <DialogTitle className="text-foreground">Turnkey Wallet</DialogTitle>
-                    <DialogDescription className="text-muted-foreground">
-                      Secure authentication with biometrics
-                    </DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              <div className="mt-6">
-                {/* Turnkey iframe or authentication component will go here */}
-                <div className="flex items-center justify-center p-8 border border-dashed border-border rounded-lg">
-                  <div className="text-center">
-                    <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-sm text-muted-foreground">
-                      Turnkey authentication component will be embedded here
-                    </p>
-                  </div>
-                </div>
               </div>
             </motion.div>
           )}

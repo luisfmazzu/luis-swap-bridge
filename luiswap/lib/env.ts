@@ -19,13 +19,6 @@ function getServerEnv() {
   }
 
   return {
-    // Turnkey Configuration
-    TURNKEY_API_BASE_URL: process.env.TURNKEY_API_BASE_URL || 'https://api.turnkey.com',
-    TURNKEY_ORGANIZATION_ID: process.env.TURNKEY_ORGANIZATION_ID || '',
-    TURNKEY_RP_ID: process.env.TURNKEY_RP_ID || 'localhost',
-    TURNKEY_SERVER_SIGN_URL: process.env.TURNKEY_SERVER_SIGN_URL || '/api/turnkey/sign',
-    TURNKEY_IFRAME_URL: process.env.TURNKEY_IFRAME_URL || 'https://auth.turnkey.com',
-    
     // WalletConnect/Reown Configuration
     REOWN_PROJECT_ID: process.env.REOWN_PROJECT_ID || process.env.WALLETCONNECT_PROJECT_ID || '',
     
@@ -70,9 +63,6 @@ export function validateRequiredEnvVars() {
     // Server-side validation
     const env = getServerEnv()
     
-    if (!env.TURNKEY_ORGANIZATION_ID) {
-      errors.push('TURNKEY_ORGANIZATION_ID is required')
-    }
     
     if (!env.REOWN_PROJECT_ID) {
       errors.push('REOWN_PROJECT_ID is required')
