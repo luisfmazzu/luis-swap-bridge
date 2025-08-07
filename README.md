@@ -13,13 +13,12 @@ A modern decentralized exchange (DEX) platform frontend with beautiful UI/UX des
 - Mobile-responsive design optimized for all screen sizes
 - Modern animations and interactive components
 - Wagmi Integration: Web3 wallet connections and blockchain interactions
+- **Turnkey Integration**: Embedded wallet with passkey authentication and multi-chain support
 
 **Next Steps - Backend Integrations**: The following integrations are planned for future development:
 - **DEX Operations**: 1inch API integration for actual token swapping
-- **Turnkey Wallet**: Embedded wallet infrastructure and user authentication  
 - **Cross-chain Bridging**: Stargate Finance protocol integration
 - **Real-time Data**: Live blockchain data feeds and transaction monitoring
-- **Portfolio Management**: Actual token balance tracking and USD valuations
 
 ## 🎯 Project Goal
 
@@ -34,6 +33,8 @@ LuiSwap aims to provide users with a comprehensive DeFi platform for trading, br
 - **Live Events**: Transaction monitoring interface with filtering capabilities
 - **Responsive Design**: Mobile-first design optimized for all screen sizes
 - **Professional Animations**: Smooth transitions and interactive components using Framer Motion
+- **Turnkey Embedded Wallet**: Passkey authentication, Google OAuth, and multi-chain support (TRON, Ethereum, Celo)
+- **Token Discovery**: Automatic balance detection across multiple networks with USD pricing
 
 ## 🛠️ Technologies & Techniques
 
@@ -59,29 +60,35 @@ LuiSwap aims to provide users with a comprehensive DeFi platform for trading, br
 - **PostCSS** with Tailwind for CSS processing and optimization
 - **Next.js built-in optimizations** for performance and SEO
 
-### Future Integrations (Planned)
+### Current Integrations (Implemented)
 - **Wagmi v2** - React hooks for multi-chain Web3 development
 - **Viem** - Type-safe Ethereum library for blockchain interactions  
-- **Turnkey SDK** - Embedded wallet infrastructure
-- **1inch API** - DEX aggregation for optimal trading routes
+- **Turnkey SDK** - Embedded wallet infrastructure with passkey authentication
 - **TanStack Query** - Advanced data fetching and caching
 
-## 🔮 Planned Integrations
+### Future Integrations (Planned)
+- **1inch API** - DEX aggregation for optimal trading routes
+- **Stargate Finance** - Cross-chain bridging protocol
+- **Enhanced DEX Features** - Advanced trading tools and analytics
 
-### Wagmi Integration (Future)
-The project is designed to integrate with Wagmi v2's React hooks for multi-chain Web3 development:
+## 🔮 Implemented Integrations
+
+### Wagmi Integration (Implemented)
+The project uses Wagmi v2's React hooks for multi-chain Web3 development:
 - Multi-chain wallet management and authentication
 - Real-time transaction handling and status tracking  
 - Token balance queries across supported networks
 - Gas fee optimization and network switching
 - ERC20 contract interactions and approvals
 
-### Turnkey Integration (Future)
-Planned embedded wallet infrastructure for seamless user experience:
-- Email-based authentication without seed phrases
+### Turnkey Integration (Implemented)
+Embedded wallet infrastructure providing seamless user experience:
+- Passkey authentication without seed phrases
+- Google OAuth integration for social login
 - Hardware-grade security with distributed key management
-- Multi-chain support through single wallet interface
+- Multi-chain support (TRON, Ethereum, Celo) through single wallet interface
 - Seamless user onboarding for mainstream adoption
+- Automatic token discovery and balance tracking across networks
 
 ## 🚀 Getting Started
 
@@ -161,10 +168,14 @@ luiswap/
 
 The application supports testing across multiple networks:
 - **Mainnets**: Ethereum, Polygon, BSC, Arbitrum, Optimism, Avalanche
-- **Testnets**: Configure additional testnets as needed
-- **Embedded Wallets**: Test Turnkey integration with email authentication
+- **Testnets**: TRON Nile, Ethereum Sepolia, Celo Alfajores
+- **Embedded Wallets**: Test Turnkey integration with passkey and Google OAuth authentication
 - **DEX Functionality**: Use test tokens or small amounts for swap testing
 - **Bridge Operations**: Test cross-chain transfers with minimal amounts
+
+### Demo Project (Local Only)
+
+A `demo-embedded-wallet` project exists locally for Turnkey SDK reference and testing purposes. This directory is intentionally excluded from version control to keep the repository focused on the main application. The demo serves as a reference implementation for Turnkey's embedded wallet features.
 
 ## 📱 Browser Support
 
