@@ -1,7 +1,7 @@
 "use server"
 
-import { ApiKeyStamper, TurnkeyServerClient, DEFAULT_TRON_ACCOUNTS, DEFAULT_ETHEREUM_ACCOUNTS } from "@turnkey/sdk-server"
-import { OtpType } from "@turnkey/sdk-react"
+import { ApiKeyStamper, TurnkeyServerClient } from "@turnkey/sdk-server"
+import { OtpType } from "@turnkey/sdk-react"  
 import { decode, JwtPayload } from "jsonwebtoken"
 import { getAddress } from "viem"
 
@@ -81,14 +81,19 @@ export async function createPasskeyUser({
       wallet: {
         walletName: "Multi-Chain Wallet",
         accounts: [
-          ...DEFAULT_TRON_ACCOUNTS,
-          ...DEFAULT_ETHEREUM_ACCOUNTS,
-          // CELO Alfajores Testnet account
+          // Ethereum-compatible account (works for Ethereum and Celo)
+          {
+            curve: "CURVE_SECP256K1",
+            pathFormat: "PATH_FORMAT_BIP32", 
+            path: "m/44'/60'/0'/0/0", // Ethereum derivation path
+            addressFormat: "ADDRESS_FORMAT_ETHEREUM",
+          },
+          // TRON account
           {
             curve: "CURVE_SECP256K1",
             pathFormat: "PATH_FORMAT_BIP32",
-            path: "m/44'/52752'/0'/0/0", // CELO's coin type is 52752
-            addressFormat: "ADDRESS_FORMAT_ETHEREUM",
+            path: "m/44'/195'/0'/0/0", // TRON derivation path
+            addressFormat: "ADDRESS_FORMAT_TRON",
           },
         ],
       },
