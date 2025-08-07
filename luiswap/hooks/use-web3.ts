@@ -4,6 +4,7 @@ import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } fro
 import { useCallback, useMemo, useEffect } from 'react'
 import { CHAIN_INFO, isChainSupported as checkChainSupported, getChainInfo } from '@/lib/constants/chains'
 import { useWalletStore, useActiveWallet } from '@/lib/stores/wallet-store'
+import { useAuth } from '@/contexts/auth-provider'
 
 export function useWeb3() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount()
@@ -12,7 +13,9 @@ export function useWeb3() {
   const chainId = useChainId()
   const { switchChain, isPending: isSwitchPending } = useSwitchChain()
 
-  // Wallet store integration
+  // Auth and wallet store integration
+  const { user: turnkeyUser } = useAuth()
+  const hasTurnkeyAuth = !!turnkeyUser
   const { 
     setWagmiConnection, 
     setWagmiConnecting, 
@@ -21,9 +24,23 @@ export function useWeb3() {
   } = useWalletStore()
   const activeWallet = useActiveWallet()
 
-  // Sync wagmi state with store - only sync when wagmi is actively connected
-  // Don't auto-disconnect when Turnkey is active
+  // Turnkey/Wagmi isolation: Disconnect Wagmi when Turnkey user is authenticated
   useEffect(() => {
+    if (hasTurnkeyAuth && isConnected) {
+      console.log('🔄 useWeb3: Turnkey user authenticated - disconnecting Wagmi to maintain isolation')
+      disconnect()
+    }
+  }, [hasTurnkeyAuth, isConnected, disconnect])
+
+  // Sync wagmi state with store - only sync when wagmi is actively connected
+  // Block wagmi updates when Turnkey user is authenticated
+  useEffect(() => {
+    if (hasTurnkeyAuth) {
+      // Turnkey user is authenticated - don't sync wagmi state
+      console.log('🔄 useWeb3: Blocking wagmi state sync - Turnkey user is authenticated')
+      return
+    }
+    
     if (isConnected && address) {
       // Only update wagmi connection if Turnkey isn't the active connection
       if (activeWallet?.type !== 'turnkey') {
@@ -33,7 +50,7 @@ export function useWeb3() {
       // Only disconnect wagmi in store if it was the active connection
       disconnectWagmi()
     }
-  }, [isConnected, address, chainId, setWagmiConnection, disconnectWagmi, activeWallet?.type])
+  }, [isConnected, address, chainId, setWagmiConnection, disconnectWagmi, activeWallet?.type, hasTurnkeyAuth])
 
   useEffect(() => {
     setWagmiConnecting(isConnecting || isReconnecting || isConnectPending)

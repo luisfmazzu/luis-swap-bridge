@@ -22,6 +22,7 @@ import {
 import { motion } from 'framer-motion'
 import { useWeb3 } from '@/hooks/use-web3'
 import { useActiveWallet, useWalletStore } from '@/lib/stores/wallet-store'
+import { useAuth } from '@/contexts/auth-provider'
 import { getChainName, getChainColor } from '@/lib/constants/chains'
 import { WalletSelectionModal } from './wallet-selection-modal'
 import { TurnkeyAuthModal } from './turnkey-auth-modal'
@@ -47,16 +48,28 @@ function UnifiedConnectionManagerContent({
   const activeWallet = useActiveWallet()
   const { disconnectAll, disconnectTurnkey } = useWalletStore()
   const { disconnect: disconnectWagmi, currentChain, isChainSupported, formatAddress } = useWeb3()
+  const { user, logout } = useAuth()
 
-  // Get the current chain info based on active wallet
-  const chainId = activeWallet?.chainId
-  const address = activeWallet?.address
-  const isConnected = activeWallet?.isConnected || false
+  // Priority logic: Turnkey authentication overrides wallet connections
+  // If user is authenticated with Turnkey, show Turnkey info regardless of Wagmi state
+  const turnkeyUser = user
+  const hasTurnkeyAuth = !!turnkeyUser
+  
+  // For Turnkey authenticated users, we'll show a Turnkey-specific wallet view
+  // For regular wallet connections, use the active wallet info
+  const chainId = hasTurnkeyAuth ? undefined : activeWallet?.chainId
+  const address = hasTurnkeyAuth ? turnkeyUser?.id : activeWallet?.address // Show sub-org ID as address for now
+  const isConnected = hasTurnkeyAuth || activeWallet?.isConnected || false
+  
+  console.log('🔄 UnifiedConnectionManager: Turnkey auth state:', hasTurnkeyAuth)
+  console.log('🔄 UnifiedConnectionManager: Active wallet:', activeWallet)
+  console.log('🔄 UnifiedConnectionManager: User object:', turnkeyUser)
 
   const handleCopyAddress = async () => {
-    if (address && navigator?.clipboard) {
+    const textToCopy = hasTurnkeyAuth ? turnkeyUser?.email || turnkeyUser?.id || '' : address
+    if (textToCopy && navigator?.clipboard) {
       try {
-        await navigator.clipboard.writeText(address)
+        await navigator.clipboard.writeText(textToCopy)
       } catch (error) {
         console.error('Failed to copy address:', error)
       }
@@ -71,7 +84,11 @@ function UnifiedConnectionManagerContent({
   }
 
   const handleDisconnect = () => {
-    if (activeWallet?.type === 'wagmi') {
+    // Priority: If Turnkey user is authenticated, log them out
+    if (hasTurnkeyAuth) {
+      console.log('🔄 UnifiedConnectionManager: Logging out Turnkey user')
+      logout()
+    } else if (activeWallet?.type === 'wagmi') {
       disconnectWagmi()
     } else if (activeWallet?.type === 'turnkey') {
       disconnectTurnkey()
@@ -123,7 +140,12 @@ function UnifiedConnectionManagerContent({
                   style={{ backgroundColor: isChainSupported ? '#10B981' : '#EF4444' }}
                 />
               )}
-              <span className="font-mono text-sm">{formatAddress(address)}</span>
+              <span className="font-mono text-sm">
+                {hasTurnkeyAuth ? 
+                  (turnkeyUser?.email?.split('@')[0] || 'Turnkey User') : 
+                  formatAddress(address)
+                }
+              </span>
               <ChevronDown className="h-3 w-3" />
             </div>
           </Button>
@@ -143,9 +165,15 @@ function UnifiedConnectionManagerContent({
               <label className="text-sm font-medium text-muted-foreground">Connection Type</label>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="border-border">
-                  {activeWallet?.type === 'turnkey' ? 'Turnkey Wallet' : 'Traditional Wallet'}
+                  {hasTurnkeyAuth ? 'Turnkey Embedded Wallet' : 
+                   activeWallet?.type === 'turnkey' ? 'Turnkey Wallet' : 'Traditional Wallet'}
                 </Badge>
-                {activeWallet?.type === 'turnkey' && 'authMethod' in activeWallet && activeWallet.authMethod && (
+                {hasTurnkeyAuth && (
+                  <Badge variant="secondary" className="text-xs">
+                    Email Authentication
+                  </Badge>
+                )}
+                {!hasTurnkeyAuth && activeWallet?.type === 'turnkey' && 'authMethod' in activeWallet && activeWallet.authMethod && (
                   <Badge variant="secondary" className="text-xs">
                     {activeWallet.authMethod === 'passkey' ? 'Passkey' : 
                      activeWallet.authMethod === 'email' ? 'Email' :
@@ -159,11 +187,22 @@ function UnifiedConnectionManagerContent({
               </div>
             </div>
 
-            {/* Address */}
+            {/* User Info / Address */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Address</label>
+              <label className="text-sm font-medium text-muted-foreground">
+                {hasTurnkeyAuth ? 'User Account' : 'Address'}
+              </label>
               <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                <span className="font-mono text-sm flex-1 break-all">{address}</span>
+                {hasTurnkeyAuth ? (
+                  <div className="flex-1">
+                    <div className="font-mono text-sm break-all">{turnkeyUser?.email}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      ID: {turnkeyUser?.id?.substring(0, 8)}...{turnkeyUser?.id?.slice(-4)}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="font-mono text-sm flex-1 break-all">{address}</span>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -172,7 +211,7 @@ function UnifiedConnectionManagerContent({
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
-                {currentChain?.blockExplorerUrls?.[0] && (
+                {!hasTurnkeyAuth && currentChain?.blockExplorerUrls?.[0] && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -225,7 +264,27 @@ function UnifiedConnectionManagerContent({
     )
   }
 
-  // Disconnected state
+  // Disconnected state - but don't show if Turnkey user is authenticated
+  // Turnkey authentication overrides wallet connection flow
+  if (hasTurnkeyAuth) {
+    // User is authenticated with Turnkey but wallet state hasn't updated yet
+    // This shouldn't normally happen, but show connected state as fallback
+    console.log('⚠️ UnifiedConnectionManager: Turnkey user authenticated but not in connected state')
+    return (
+      <Button 
+        variant={variant}
+        className={className}
+        onClick={() => setShowWalletInfo(true)}
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500" />
+          <span className="font-mono text-sm">{turnkeyUser?.email?.split('@')[0] || 'Turnkey User'}</span>
+          <ChevronDown className="h-3 w-3" />
+        </div>
+      </Button>
+    )
+  }
+
   return (
     <>
       <Button 
