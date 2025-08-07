@@ -131,6 +131,15 @@ export function useSwap() {
     setIsSwapping(true)
 
     try {
+      // Mock swap - simulate success
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Simulate successful swap - in real implementation this would come from transaction
+      console.log(`🔄 Mock swap: ${fromAmount} ${fromToken.symbol} → ${toToken.symbol}`)
+      
+      setIsSwapping(false)
+
+      /* COMMENTED OUT - Real swap implementation
       const amountWei = parseUnits(fromAmount, fromToken.decimals)
 
       const swapData = await dexAggregator.getSwap({
@@ -149,11 +158,12 @@ export function useSwap() {
         gas: BigInt(swapData.tx.gas),
         chainId,
       })
+      */
     } catch (error) {
       setIsSwapping(false)
       throw handleDexError(error)
     }
-  }, [address, chainId, executeSwap])
+  }, [address, chainId]) // Removed executeSwap from dependencies since we're not using it
 
   // Reset swapping state when transaction is confirmed or fails
   const resetSwapState = useCallback(() => {

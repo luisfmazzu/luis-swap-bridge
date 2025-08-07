@@ -2,7 +2,8 @@
 
 import { useTurnkeyWallet } from '@/hooks/use-turnkey-wallet'
 import { useWalletTokens } from '@/hooks/use-wallet-tokens'
-import { getTokenIconGradient, formatTokenBalance } from '@/lib/token-utils'
+import { getTokenIconGradient, formatTokenBalance, formatTokenBalanceMobile } from '@/lib/token-utils'
+import { NumberModal } from '@/components/ui/number-modal'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -42,7 +43,7 @@ interface TurnkeyAssetsProps {
 
 export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps) {
   const { walletInfo } = useTurnkeyWallet(selectedNetwork)
-  const { tokens, loading, error, getTotalValueUSD, hasTokens } = useWalletTokens(
+  const { tokens, loading, pricesLoading, error, getTotalValueUSD, hasTokens } = useWalletTokens(
     walletInfo?.address, 
     selectedNetwork
   )
@@ -53,8 +54,9 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg sm:text-2xl">Assets</CardTitle>
           {hasTokens && !loading && (
-            <Badge variant="secondary" className="text-xs">
-              {tokens.length} {tokens.length === 1 ? 'Asset' : 'Assets'}
+            <Badge variant="secondary" className="text-xs flex-shrink-0 ml-2">
+              <span className="hidden xs:inline">{tokens.length} {tokens.length === 1 ? 'Asset' : 'Assets'}</span>
+              <span className="xs:hidden">{tokens.length}</span>
             </Badge>
           )}
         </div>
@@ -136,26 +138,53 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
                   </TableCell>
                   
                   <TableCell>
-                    <div className="font-medium">
-                      {formatTokenBalance(token.balance, token.decimals)}
-                      <span className="ml-1 text-xs text-muted-foreground sm:hidden">
-                        {token.symbol}
-                      </span>
-                    </div>
+                    <NumberModal 
+                      fullNumber={formatTokenBalance(token.balance, token.decimals, 18)}
+                      label="Token Balance"
+                      symbol={token.symbol}
+                    >
+                      <div className="font-medium">
+                        {/* Desktop: Show full precision, Mobile: Show shortened */}
+                        <span className="hidden sm:inline">
+                          {formatTokenBalance(token.balance, token.decimals)}
+                        </span>
+                        <span className="sm:hidden">
+                          {formatTokenBalanceMobile(token.balance, token.decimals)}
+                        </span>
+                        <span className="ml-1 text-xs text-muted-foreground sm:hidden">
+                          {token.symbol}
+                        </span>
+                      </div>
+                    </NumberModal>
                   </TableCell>
                   
                   <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
-                    ${token.priceUSD.toFixed(2)}
+                    {token.priceUSD === -1 ? (
+                      <Skeleton className="h-4 w-12" />
+                    ) : (
+                      `$${token.priceUSD.toFixed(2)}`
+                    )}
                   </TableCell>
                   
                   <TableCell>
-                    <div className="font-medium">
-                      ${token.valueUSD.toFixed(2)}
-                    </div>
-                    {/* Mobile: show price below value */}
-                    <div className="text-xs text-muted-foreground sm:hidden">
-                      ${token.priceUSD.toFixed(2)} each
-                    </div>
+                    {token.valueUSD === -1 ? (
+                      <div>
+                        <Skeleton className="h-4 w-16 mb-1" />
+                        <div className="text-xs text-muted-foreground sm:hidden">
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="font-medium">
+                          ${token.valueUSD.toFixed(2)}
+                        </div>
+                        {/* Mobile: show price below value */}
+                        <div className="text-xs text-muted-foreground sm:hidden">
+                          ${token.priceUSD.toFixed(2)} each
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -182,9 +211,19 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
           <div className="mt-4 pt-4 border-t">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Total Portfolio Value</span>
-              <span className="text-lg font-semibold">
-                ${getTotalValueUSD().toFixed(2)}
-              </span>
+              {pricesLoading || tokens.some(t => t.valueUSD === -1) ? (
+                <Skeleton className="h-6 w-20" />
+              ) : (
+                <NumberModal 
+                  fullNumber={getTotalValueUSD().toString()}
+                  label="Total Portfolio Value"
+                  symbol="USD"
+                >
+                  <span className="text-lg font-semibold">
+                    ${getTotalValueUSD().toFixed(2)}
+                  </span>
+                </NumberModal>
+              )}
             </div>
           </div>
         )}

@@ -13,6 +13,7 @@ export interface TokenWithPrice extends DetectedToken {
 export function useWalletTokens(address?: string, network?: 'tron' | 'ethereum' | 'celo') {
   const [tokens, setTokens] = useState<TokenWithPrice[]>([])
   const [loading, setLoading] = useState(false)
+  const [pricesLoading, setPricesLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -26,10 +27,7 @@ export function useWalletTokens(address?: string, network?: 'tron' | 'ethereum' 
         setLoading(true)
         setError(null)
 
-        console.log('🔍 useWalletTokens: Detecting tokens for', network, 'address:', address)
-
         // Step 1: Try enhanced token detection first, then fall back to original
-        console.log('🔍 useWalletTokens: Trying enhanced discovery first...')
         
         let detectedTokens
         try {
@@ -38,7 +36,6 @@ export function useWalletTokens(address?: string, network?: 'tron' | 'ethereum' 
           const enhancedTokens = await discoverWalletTokens(address, network)
           
           if (enhancedTokens.length > 0) {
-            console.log('✅ useWalletTokens: Using enhanced discovery results')
             // Convert to DetectedToken format for compatibility
             detectedTokens = enhancedTokens.map(token => ({
               address: token.address,
@@ -54,30 +51,32 @@ export function useWalletTokens(address?: string, network?: 'tron' | 'ethereum' 
             }))
           } else {
             // Fallback to original detection
-            console.log('⚠️ useWalletTokens: Enhanced discovery found nothing, using original')
             detectedTokens = await detectWalletTokens(address, network)
           }
         } catch (enhancedError) {
-          console.warn('⚠️ useWalletTokens: Enhanced discovery failed, using original:', enhancedError)
           detectedTokens = await detectWalletTokens(address, network)
         }
         
         if (detectedTokens.length === 0) {
-          console.log('🔍 useWalletTokens: No tokens found')
           setTokens([])
           setLoading(false)
           return
         }
 
-        console.log('✅ useWalletTokens: Detected tokens:', detectedTokens.map(t => `${t.symbol} (${t.balance})`))
-
         // Step 2: Get CoinGecko IDs for price fetching
         const coingeckoIds = getCoingeckoIdsFromTokens(detectedTokens)
-        console.log('🔍 useWalletTokens: Fetching prices for CoinGecko IDs:', coingeckoIds)
+
+        // Set tokens with placeholder prices while fetching real prices
+        const tokensWithPlaceholders: TokenWithPrice[] = detectedTokens.map(token => ({
+          ...token,
+          priceUSD: -1, // Use -1 as loading indicator
+          valueUSD: -1
+        }))
+        setTokens(tokensWithPlaceholders)
 
         // Step 3: Fetch prices for detected tokens
+        setPricesLoading(true)
         const prices = await getTokenPricesByIds(coingeckoIds)
-        console.log('✅ useWalletTokens: Fetched prices:', prices)
 
         // Step 4: Combine token data with prices
         const tokensWithPrices: TokenWithPrice[] = detectedTokens.map(token => {
@@ -91,15 +90,15 @@ export function useWalletTokens(address?: string, network?: 'tron' | 'ethereum' 
           }
         })
 
-        console.log('✅ useWalletTokens: Final tokens with prices:', tokensWithPrices.map(t => `${t.symbol}: $${t.valueUSD.toFixed(2)}`))
         setTokens(tokensWithPrices)
+        setPricesLoading(false)
 
       } catch (err) {
-        console.error('❌ useWalletTokens: Error:', err)
         setError(err instanceof Error ? err.message : 'Failed to detect wallet tokens')
         setTokens([])
       } finally {
         setLoading(false)
+        setPricesLoading(false)
       }
     }
 
@@ -131,6 +130,7 @@ export function useWalletTokens(address?: string, network?: 'tron' | 'ethereum' 
   return {
     tokens,
     loading,
+    pricesLoading,
     error,
     getTotalValueUSD,
     getTokenBySymbol,

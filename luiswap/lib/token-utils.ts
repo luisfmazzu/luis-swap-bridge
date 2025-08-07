@@ -16,6 +16,18 @@ export function formatTokenBalance(balance: string, decimals: number, maxDecimal
   return numBalance.toFixed(displayDecimals)
 }
 
+// Format token balance for mobile display (shorter)
+export function formatTokenBalanceMobile(balance: string, decimals: number): string {
+  const numBalance = parseFloat(balance)
+  
+  if (numBalance === 0) return '0'
+  if (numBalance < 0.01) return '<0.01'
+  if (numBalance < 1) return numBalance.toFixed(3)
+  if (numBalance < 1000) return numBalance.toFixed(2)
+  if (numBalance < 1000000) return (numBalance / 1000).toFixed(1) + 'K'
+  return (numBalance / 1000000).toFixed(1) + 'M'
+}
+
 // Get token icon color based on symbol and network
 export function getTokenIconGradient(symbol: string, networkId: string, isNative: boolean): string {
   if (isNative) {

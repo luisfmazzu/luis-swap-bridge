@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useTurnkeyWallet } from '@/hooks/use-turnkey-wallet'
 import { ArrowDownIcon, ArrowUpIcon, LoaderIcon, ExternalLink } from 'lucide-react'
 import { formatEther } from 'viem'
+import { formatTokenBalanceMobile } from '@/lib/token-utils'
+import { NumberModal } from '@/components/ui/number-modal'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -340,8 +342,8 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
                       </button>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">
-                        {(() => {
+                      {(() => {
+                        const getFormattedValue = () => {
                           if (!transaction.value || transaction.value === '0') return '0'
                           
                           // Handle different transaction types
@@ -357,27 +359,50 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
                             // Ethereum/CELO use wei (18 decimals)
                             return formatEther(BigInt(transaction.value))
                           }
-                        })()} {' '}
-                        <span className="text-xs text-muted-foreground">
-                          {transaction.tokenInfo?.symbol || walletInfo?.networkConfig?.symbol || 'TOKEN'}
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        $
-                        {(() => {
-                          if (!transaction.value || !walletInfo?.networkConfig || !prices) return '0'
-                          
-                          let tokenAmount = 0
-                          if (walletInfo.networkConfig.id === 'tron') {
-                            tokenAmount = parseFloat(transaction.value) / Math.pow(10, 6)
-                          } else {
-                            tokenAmount = parseFloat(formatEther(BigInt(transaction.value)))
-                          }
-                          
-                          const currentPrice = prices[walletInfo.networkConfig.id] || 0
-                          return (tokenAmount * currentPrice).toFixed(2)
-                        })()}
-                      </div>
+                        }
+                        
+                        const fullValue = getFormattedValue()
+                        const mobileValue = formatTokenBalanceMobile(fullValue, 6)
+                        const symbol = transaction.tokenInfo?.symbol || walletInfo?.networkConfig?.symbol || 'TOKEN'
+                        
+                        return (
+                          <NumberModal 
+                            fullNumber={fullValue}
+                            label="Transaction Amount"
+                            symbol={symbol}
+                          >
+                            <div className="font-medium">
+                              {/* Desktop: Show full precision, Mobile: Show shortened */}
+                              <span className="hidden sm:inline">
+                                {fullValue}
+                              </span>
+                              <span className="sm:hidden">
+                                {mobileValue}
+                              </span>
+                              {' '}
+                              <span className="text-xs text-muted-foreground">
+                                {symbol}
+                              </span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              $
+                              {(() => {
+                                if (!transaction.value || !walletInfo?.networkConfig || !prices) return '0'
+                                
+                                let tokenAmount = 0
+                                if (walletInfo.networkConfig.id === 'tron') {
+                                  tokenAmount = parseFloat(transaction.value) / Math.pow(10, 6)
+                                } else {
+                                  tokenAmount = parseFloat(formatEther(BigInt(transaction.value)))
+                                }
+                                
+                                const currentPrice = prices[walletInfo.networkConfig.id] || 0
+                                return (tokenAmount * currentPrice).toFixed(2)
+                              })()}
+                            </div>
+                          </NumberModal>
+                        )
+                      })()}
                     </TableCell>
                   </TableRow>
                 ))

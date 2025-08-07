@@ -24,13 +24,10 @@ export default function ExplorePage() {
   // Determine which wallet is active
   useEffect(() => {
     if (turnkeyUser) {
-      console.log('🔄 ExplorePage: Turnkey user detected:', turnkeyUser.email)
       setWalletType('turnkey')
     } else if (activeWallet?.isConnected) {
-      console.log('🔄 ExplorePage: Wagmi wallet detected:', activeWallet.type)
       setWalletType('wagmi')
     } else {
-      console.log('🔄 ExplorePage: No wallet connected')
       setWalletType('none')
     }
   }, [turnkeyUser, activeWallet])
@@ -46,46 +43,97 @@ export default function ExplorePage() {
                 Your embedded wallet powered by Turnkey
               </p>
               
-              {/* Network Selector */}
-              <div className="flex items-center justify-center gap-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Network className="h-4 w-4" />
-                  <span>Network:</span>
+              {/* Network Selector and Explorer Button Row */}
+              <div className="w-full max-w-5xl mx-auto">
+                {/* Desktop: Single row with justify-between */}
+                <div className="hidden sm:flex items-center justify-between">
+                  {/* Network Selector - Left aligned */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Network className="h-4 w-4" />
+                      <span>Network:</span>
+                    </div>
+                    <Select 
+                      value={selectedNetwork} 
+                      onValueChange={(value: 'tron' | 'ethereum' | 'celo') => setSelectedNetwork(value)}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(NETWORK_CONFIGS).map(([key, config]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className={`w-3 h-3 rounded-full ${
+                                  config.id === 'tron' 
+                                    ? 'bg-gradient-to-r from-red-500 to-orange-500'
+                                    : config.id === 'celo'
+                                    ? 'bg-gradient-to-r from-green-500 to-yellow-500'
+                                    : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                                }`}
+                              />
+                              <span>{config.name}</span>
+                              <Badge variant="outline" className="text-xs ml-1">
+                                {config.testnet}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Explorer Button - Right aligned */}
+                  <div className="flex items-center">
+                    <ExplorerButton selectedNetwork={selectedNetwork} />
+                  </div>
                 </div>
-                <Select 
-                  value={selectedNetwork} 
-                  onValueChange={(value: 'tron' | 'ethereum' | 'celo') => setSelectedNetwork(value)}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(NETWORK_CONFIGS).map(([key, config]) => (
-                      <SelectItem key={key} value={key}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className={`w-3 h-3 rounded-full ${
-                              config.id === 'tron' 
-                                ? 'bg-gradient-to-r from-red-500 to-orange-500'
-                                : config.id === 'celo'
-                                ? 'bg-gradient-to-r from-green-500 to-yellow-500'
-                                : 'bg-gradient-to-r from-purple-500 to-blue-500'
-                            }`}
-                          />
-                          <span>{config.name}</span>
-                          <Badge variant="outline" className="text-xs ml-1">
-                            {config.testnet}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Explorer Button Row */}
-              <div className="flex items-center justify-center">
-                <ExplorerButton selectedNetwork={selectedNetwork} />
+
+                {/* Mobile: Stack vertically for small screens */}
+                <div className="sm:hidden space-y-4">
+                  {/* Network Selector */}
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Network className="h-4 w-4" />
+                      <span>Network:</span>
+                    </div>
+                    <Select 
+                      value={selectedNetwork} 
+                      onValueChange={(value: 'tron' | 'ethereum' | 'celo') => setSelectedNetwork(value)}
+                    >
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(NETWORK_CONFIGS).map(([key, config]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className={`w-3 h-3 rounded-full ${
+                                  config.id === 'tron' 
+                                    ? 'bg-gradient-to-r from-red-500 to-orange-500'
+                                    : config.id === 'celo'
+                                    ? 'bg-gradient-to-r from-green-500 to-yellow-500'
+                                    : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                                }`}
+                              />
+                              <span>{config.name}</span>
+                              <Badge variant="outline" className="text-xs ml-1">
+                                {config.testnet}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Explorer Button */}
+                  <div className="flex items-center justify-center">
+                    <ExplorerButton selectedNetwork={selectedNetwork} />
+                  </div>
+                </div>
               </div>
             </div>
             <TurnkeyDashboard selectedNetwork={selectedNetwork} />
