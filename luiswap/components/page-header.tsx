@@ -11,6 +11,7 @@ export function PageHeader() {
 
   const navItems = [
     { name: "Home", href: "/" },
+    { name: "Deposit", href: "/deposit" },
     { name: "Swap", href: "/swap" },
     { name: "Bridge", href: "/bridge" },
     { name: "Explore", href: "/explore" },

@@ -56,6 +56,25 @@ const nextConfig = {
     return config
   },
   
+  // Add proper headers for Turnkey integration
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'unsafe-none',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'unsafe-none',
+          },
+        ],
+      },
+    ]
+  },
+  
   // Experimental features for better Web3 support
   experimental: {
     optimizePackageImports: ['wagmi', '@tanstack/react-query', 'viem'],

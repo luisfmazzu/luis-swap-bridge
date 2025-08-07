@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Wallet } from 'lucide-react'
 import { ClientWrapper } from './client-wrapper'
 
-// Dynamic import of ConnectionManager to avoid SSR issues
+// Dynamic import of UnifiedConnectionManager to avoid SSR issues
 const ConnectionManagerCore = dynamic(
-  () => import('./connection-manager').then(mod => ({ default: mod.ConnectionManager })),
+  () => import('../wallet/unified-connection-manager').then(mod => ({ default: mod.UnifiedConnectionManager })),
   {
     loading: () => <ConnectionManagerSkeleton />,
     ssr: false, // Disable server-side rendering for wallet connections
