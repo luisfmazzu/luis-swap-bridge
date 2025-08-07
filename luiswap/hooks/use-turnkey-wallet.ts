@@ -4,10 +4,11 @@ import { useEffect, useState, useMemo } from 'react'
 import { useTurnkey } from '@turnkey/sdk-react'
 import { useAuth } from '@/contexts/auth-provider'
 import { getAddress } from 'viem'
+import { useTokenPrices } from './use-token-prices'
 
 // Network configuration
 interface NetworkConfig {
-  id: 'tron' | 'ethereum'
+  id: 'tron' | 'ethereum' | 'celo'
   name: string
   testnet: string
   symbol: string
@@ -15,20 +16,18 @@ interface NetworkConfig {
   explorerUrl: string
   faucetUrl: string
   rpcUrl: string
-  mockPrice: number
 }
 
-const NETWORK_CONFIGS: Record<'tron' | 'ethereum', NetworkConfig> = {
+const NETWORK_CONFIGS: Record<'tron' | 'ethereum' | 'celo', NetworkConfig> = {
   tron: {
     id: 'tron',
     name: 'TRON',
-    testnet: 'Shasta Testnet',
+    testnet: 'Nile Testnet',
     symbol: 'TRX',
     decimals: 6, // 1 TRX = 1,000,000 SUN
-    explorerUrl: 'https://shasta.tronscan.org/#/address/',
-    faucetUrl: 'https://www.trongrid.io/faucet',
-    rpcUrl: 'https://api.shasta.trongrid.io',
-    mockPrice: 0.1
+    explorerUrl: 'https://nile.tronscan.org/#/address/',
+    faucetUrl: 'https://nileex.io/join/getJoinPage',
+    rpcUrl: 'https://nile.trongrid.io' // TronGrid API - more reliable than nileex.io
   },
   ethereum: {
     id: 'ethereum',
@@ -37,9 +36,18 @@ const NETWORK_CONFIGS: Record<'tron' | 'ethereum', NetworkConfig> = {
     symbol: 'ETH',
     decimals: 18,
     explorerUrl: 'https://sepolia.etherscan.io/address/',
-    faucetUrl: 'https://sepoliafaucet.com/',
-    rpcUrl: 'https://ethereum-sepolia-rpc.publicnode.com',
-    mockPrice: 3500
+    faucetUrl: 'https://sepolia-faucet.pk910.de/',
+    rpcUrl: 'https://ethereum-sepolia-rpc.publicnode.com'
+  },
+  celo: {
+    id: 'celo',
+    name: 'Celo',
+    testnet: 'Alfajores Testnet',
+    symbol: 'CELO',
+    decimals: 18,
+    explorerUrl: 'https://alfajores.celoscan.io/address/',
+    faucetUrl: 'https://faucet.celo.org/alfajores',
+    rpcUrl: 'https://alfajores-forno.celo-testnet.org'
   }
 }
 
@@ -49,7 +57,7 @@ export interface TurnkeyAccount {
   organizationId: string
   walletId: string
   addressFormat: 'ETHEREUM' | 'TRON'
-  network: 'tron' | 'ethereum'
+  network: 'tron' | 'ethereum' | 'celo'
   networkConfig: NetworkConfig
 }
 
@@ -67,15 +75,25 @@ interface TurnkeyWalletState {
   selectedAccount: TurnkeyAccount | null
 }
 
-// Detect network based on address format
-function detectNetworkFromAddress(address: string): NetworkConfig {
+// Detect network based on address format and account path
+function detectNetworkFromAccount(account: any): NetworkConfig {
+  const address = account.address
+  const path = account.path
+  
   // TRON addresses start with 'T' and are base58 encoded
   if (address.startsWith('T') && address.length >= 34) {
     return NETWORK_CONFIGS.tron
-  } 
-  // Ethereum addresses start with '0x' and are hex encoded
+  }
+  // For 0x addresses, differentiate by derivation path
   else if (address.startsWith('0x') && address.length === 42) {
-    return NETWORK_CONFIGS.ethereum
+    // CELO uses coin type 52752 (m/44'/52752'/...)
+    if (path && path.includes("52752")) {
+      return NETWORK_CONFIGS.celo
+    }
+    // Ethereum uses coin type 60 (m/44'/60'/...)
+    else {
+      return NETWORK_CONFIGS.ethereum
+    }
   }
   // Default to ethereum
   return NETWORK_CONFIGS.ethereum
@@ -142,10 +160,10 @@ function formatBalanceForDisplay(balance: bigint, networkConfig: NetworkConfig):
   }
 }
 
-// Calculate USD value
-function calculateUSDValue(balance: bigint, networkConfig: NetworkConfig): number {
+// Calculate USD value - now requires price to be passed in
+function calculateUSDValue(balance: bigint, networkConfig: NetworkConfig, price: number): number {
   const formattedBalance = formatBalanceForDisplay(balance, networkConfig)
-  return parseFloat(formattedBalance) * networkConfig.mockPrice
+  return parseFloat(formattedBalance) * price
 }
 
 async function getWalletsWithAccounts(
@@ -171,7 +189,7 @@ async function getWalletsWithAccounts(
             accounts.map(async (account: any) => {
               if (account.organizationId === organizationId) {
                 let address = account.address
-                const networkConfig = detectNetworkFromAddress(address)
+                const networkConfig = detectNetworkFromAccount(account)
                 
                 // Only use viem's getAddress for Ethereum addresses
                 if (networkConfig.id === 'ethereum') {
@@ -216,9 +234,10 @@ async function getWalletsWithAccounts(
   }
 }
 
-export function useTurnkeyWallet(selectedNetwork?: 'tron' | 'ethereum') {
+export function useTurnkeyWallet(selectedNetwork?: 'tron' | 'ethereum' | 'celo') {
   const { indexedDbClient } = useTurnkey()
   const { user } = useAuth()
+  const { prices, loading: pricesLoading } = useTokenPrices()
   
   const [state, setState] = useState<TurnkeyWalletState>({
     loading: false,
@@ -303,50 +322,62 @@ export function useTurnkeyWallet(selectedNetwork?: 'tron' | 'ethereum') {
       return null
     }
 
-    // If network is overridden, use a mock account for that network
+    // If network is overridden, find the actual account for that network
     if (selectedNetwork && selectedNetwork !== state.selectedAccount.network) {
-      const networkConfig = NETWORK_CONFIGS[selectedNetwork]
-      return {
-        walletName: state.selectedWallet.walletName,
-        address: selectedNetwork === 'tron' ? 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE' : '0x742d35Cc6634C0532925a3b8D2F4e8F33C6E9f9C',
-        balance: BigInt(0), // Show 0 balance for switched networks
-        formattedAddress: selectedNetwork === 'tron' ? 'TQn9Y2...bLSE' : '0x742d...9f9C',
-        networkConfig,
-        network: selectedNetwork
+      // Look for an existing account in the selected network
+      const networkAccount = state.selectedWallet.accounts.find(
+        account => account.network === selectedNetwork
+      )
+      
+      if (networkAccount) {
+        const currentPrice = prices[networkAccount.network] || 0
+        return {
+          walletName: state.selectedWallet.walletName,
+          address: networkAccount.address,
+          balance: networkAccount.balance || BigInt(0),
+          formattedAddress: `${networkAccount.address.slice(0, 6)}...${networkAccount.address.slice(-4)}`,
+          networkConfig: networkAccount.networkConfig,
+          network: networkAccount.network,
+          usdValue: calculateUSDValue(networkAccount.balance || BigInt(0), networkAccount.networkConfig, currentPrice)
+        }
+      } else {
+        // If no account exists for the selected network, return null
+        // This will show a message that the user needs to create an account for this network
+        return null
       }
     }
 
+    const currentPrice = prices[state.selectedAccount.network] || 0
     return {
       walletName: state.selectedWallet.walletName,
       address: state.selectedAccount.address,
       balance: state.selectedAccount.balance || BigInt(0),
       formattedAddress: `${state.selectedAccount.address.slice(0, 6)}...${state.selectedAccount.address.slice(-4)}`,
       networkConfig: state.selectedAccount.networkConfig,
-      network: state.selectedAccount.network
+      network: state.selectedAccount.network,
+      usdValue: calculateUSDValue(state.selectedAccount.balance || BigInt(0), state.selectedAccount.networkConfig, currentPrice)
     }
-  }, [state.selectedWallet, state.selectedAccount, selectedNetwork])
+  }, [state.selectedWallet, state.selectedAccount, selectedNetwork, prices])
 
   // Override selected account if network is overridden
   const effectiveAccount = useMemo(() => {
-    if (selectedNetwork && selectedNetwork !== state.selectedAccount?.network && state.selectedAccount) {
-      const networkConfig = NETWORK_CONFIGS[selectedNetwork]
-      return {
-        ...state.selectedAccount,
-        address: selectedNetwork === 'tron' ? 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE' : '0x742d35Cc6634C0532925a3b8D2F4e8F33C6E9f9C',
-        balance: BigInt(0),
-        network: selectedNetwork,
-        networkConfig,
-        addressFormat: selectedNetwork === 'tron' ? 'TRON' : 'ETHEREUM'
-      }
+    if (selectedNetwork && selectedNetwork !== state.selectedAccount?.network && state.selectedWallet) {
+      // Find the actual account for the selected network
+      const networkAccount = state.selectedWallet.accounts.find(
+        account => account.network === selectedNetwork
+      )
+      return networkAccount || state.selectedAccount
     }
     return state.selectedAccount
-  }, [state.selectedAccount, selectedNetwork])
+  }, [state.selectedAccount, selectedNetwork, state.selectedWallet])
 
   return {
     ...state,
+    loading: state.loading || pricesLoading, // Include prices loading state
     selectedAccount: effectiveAccount, // Use effective account that considers network override
     walletInfo,
     hasWallet: !!state.selectedWallet,
+    prices,
     selectWallet: (wallet: TurnkeyWallet) => {
       setState(prev => ({
         ...prev,

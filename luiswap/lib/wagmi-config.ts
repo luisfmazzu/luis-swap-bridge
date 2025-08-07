@@ -73,8 +73,8 @@ export const wagmiConfig = createConfig({
     metaMask({
       dappMetadata: {
         name: 'LuiSwap',
-        url: 'https://luiswap.com',
-        iconUrl: 'https://luiswap.com/icon.png',
+        url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        iconUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
       },
     }),
     // walletConnect({

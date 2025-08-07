@@ -6,6 +6,7 @@ import { PageFooter } from "@/components/page-footer"
 import { DynamicPortfolioOverview } from "@/components/web3"
 import { TokenList } from "@/components/portfolio/token-list"
 import { TurnkeyDashboard } from "@/components/wallet/turnkey-dashboard"
+import { ExplorerButton } from "@/components/wallet/explorer-button"
 import { useAuth } from "@/contexts/auth-provider"
 import { useActiveWallet } from "@/lib/stores/wallet-store"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,7 +19,7 @@ export default function ExplorePage() {
   const { user: turnkeyUser } = useAuth()
   const activeWallet = useActiveWallet()
   const [walletType, setWalletType] = useState<'turnkey' | 'wagmi' | 'none'>('none')
-  const [selectedNetwork, setSelectedNetwork] = useState<'tron' | 'ethereum'>('tron')
+  const [selectedNetwork, setSelectedNetwork] = useState<'tron' | 'ethereum' | 'celo'>('tron')
 
   // Determine which wallet is active
   useEffect(() => {
@@ -53,7 +54,7 @@ export default function ExplorePage() {
                 </div>
                 <Select 
                   value={selectedNetwork} 
-                  onValueChange={(value: 'tron' | 'ethereum') => setSelectedNetwork(value)}
+                  onValueChange={(value: 'tron' | 'ethereum' | 'celo') => setSelectedNetwork(value)}
                 >
                   <SelectTrigger className="w-48">
                     <SelectValue />
@@ -66,6 +67,8 @@ export default function ExplorePage() {
                             className={`w-3 h-3 rounded-full ${
                               config.id === 'tron' 
                                 ? 'bg-gradient-to-r from-red-500 to-orange-500'
+                                : config.id === 'celo'
+                                ? 'bg-gradient-to-r from-green-500 to-yellow-500'
                                 : 'bg-gradient-to-r from-purple-500 to-blue-500'
                             }`}
                           />
@@ -78,6 +81,11 @@ export default function ExplorePage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              
+              {/* Explorer Button Row */}
+              <div className="flex items-center justify-center">
+                <ExplorerButton selectedNetwork={selectedNetwork} />
               </div>
             </div>
             <TurnkeyDashboard selectedNetwork={selectedNetwork} />
@@ -130,7 +138,7 @@ export default function ExplorePage() {
       <PageHeader />
       <main className="flex-1" style={{ backgroundColor: "#151826" }}>
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             {renderDashboard()}
           </div>
         </div>

@@ -6,7 +6,7 @@ import { TurnkeyActivity } from './turnkey-activity'
 
 interface TurnkeyDashboardProps {
   className?: string
-  selectedNetwork?: 'tron' | 'ethereum'
+  selectedNetwork?: 'tron' | 'ethereum' | 'celo'
 }
 
 export function TurnkeyDashboard({ className, selectedNetwork }: TurnkeyDashboardProps) {

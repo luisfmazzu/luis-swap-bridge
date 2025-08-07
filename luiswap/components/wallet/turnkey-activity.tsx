@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
+import { API_ENDPOINTS, EXPLORER_URLS, API_CONFIG } from '@/lib/constants/api-endpoints'
 
 interface Transaction {
   hash: string
@@ -26,24 +27,164 @@ interface Transaction {
   status: 'confirmed' | 'pending' | 'failed'
   timestamp: number
   blockNumber?: number
+  tokenInfo?: {
+    symbol: string
+    decimals: number
+    name: string
+    address: string
+  }
+  type?: 'TRX' | 'TRC20' | 'ETH' | 'ERC20'
 }
 
 // Network-aware pricing handled by NETWORK_CONFIGS
 
 interface TurnkeyActivityProps {
   className?: string
-  selectedNetwork?: 'tron' | 'ethereum'
+  selectedNetwork?: 'tron' | 'ethereum' | 'celo'
 }
 
-// Mock function to fetch transactions - in production you'd use Alchemy or similar
-async function fetchTransactions(address: string): Promise<Transaction[]> {
+// Fetch transactions based on network type
+async function fetchTransactions(address: string, networkId: string): Promise<Transaction[]> {
   try {
-    // Using a public API to get transaction history
-    // In production, you'd use Alchemy, Etherscan API, or similar
-    console.log('🔍 Fetching transactions for address:', address)
+    console.log('🔍 Fetching transactions for address:', address, 'network:', networkId)
     
-    // For now, return empty array since we need proper API setup
-    // In the demo, they have Alchemy SDK configured
+    if (networkId === 'tron') {
+      // Fetch both TRX transactions and TRC20 token transfers
+      const [trxResponse, trc20Response] = await Promise.all([
+        fetch(API_ENDPOINTS.TRON.NILE_TESTNET.TRANSACTIONS(address), {
+          method: 'GET',
+          headers: API_CONFIG.DEFAULT_HEADERS,
+        }),
+        fetch(API_ENDPOINTS.TRON.NILE_TESTNET.TRC20_TRANSACTIONS(address), {
+          method: 'GET',
+          headers: API_CONFIG.DEFAULT_HEADERS,
+        })
+      ])
+      
+      const transactions: Transaction[] = []
+      
+      // Process TRC20 token transfers (more important for wallet activity)
+      if (trc20Response.ok) {
+        const trc20Data = await trc20Response.json()
+        console.log('🔍 TRON TRC20 API response:', trc20Data)
+        
+        if (trc20Data.data && trc20Data.data.length > 0) {
+          const trc20Transactions = trc20Data.data.slice(0, 10).map((tx: any) => ({
+            hash: tx.transaction_id,
+            from: tx.from,
+            to: tx.to,
+            value: tx.value,
+            status: 'confirmed' as const,
+            timestamp: Math.floor(tx.block_timestamp / 1000),
+            tokenInfo: {
+              symbol: tx.token_info.symbol,
+              decimals: tx.token_info.decimals,
+              name: tx.token_info.name,
+              address: tx.token_info.address,
+            },
+            type: 'TRC20' as const
+          }))
+          transactions.push(...trc20Transactions)
+        }
+      }
+      
+      // Process TRX transactions
+      if (trxResponse.ok) {
+        const trxData = await trxResponse.json()
+        console.log('🔍 TRON TRX API response:', trxData)
+        
+        if (trxData.data && trxData.data.length > 0) {
+          const trxTransactions = trxData.data.slice(0, 5).map((tx: any) => {
+            // Parse TRON transaction
+            const contract = tx.raw_data?.contract?.[0]
+            const value = contract?.parameter?.value
+            const contractType = contract?.type
+            
+            // Handle different contract types
+            let fromAddress = address
+            let toAddress = address  
+            let amount = '0'
+            
+            if (contractType === 'TransferContract' && value) {
+              fromAddress = value.owner_address || address
+              toAddress = value.to_address || address
+              amount = value.amount ? value.amount.toString() : '0'
+            } else if (contractType === 'TriggerSmartContract' && value) {
+              fromAddress = value.owner_address || address
+              toAddress = value.contract_address || address
+              // For smart contract calls, amount might be in callValue
+              amount = value.call_value ? value.call_value.toString() : '0'
+            }
+            
+            return {
+              hash: tx.txID,
+              from: fromAddress,
+              to: toAddress,
+              value: amount,
+              status: tx.ret?.[0]?.contractRet === 'SUCCESS' ? 'confirmed' : 'failed',
+              timestamp: Math.floor(tx.block_timestamp / 1000),
+              blockNumber: tx.blockNumber,
+              type: 'TRX' as const
+            }
+          })
+          transactions.push(...trxTransactions)
+        }
+      }
+      
+      // Sort all transactions by timestamp (most recent first)
+      return transactions.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10)
+    } else if (networkId === 'ethereum') {
+      // Use Etherscan API for Sepolia testnet
+      const response = await fetch(
+        `${API_ENDPOINTS.ETHEREUM.SEPOLIA_TESTNET.ETHERSCAN_API}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=demo`
+      )
+      
+      if (!response.ok) {
+        throw new Error(`Etherscan API error: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      console.log('🔍 Etherscan API response:', data)
+      
+      if (data.result && data.result.length > 0) {
+        return data.result.map((tx: any) => ({
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to,
+          value: tx.value,
+          status: tx.txreceipt_status === '1' ? 'confirmed' : 'failed',
+          timestamp: parseInt(tx.timeStamp),
+          blockNumber: parseInt(tx.blockNumber),
+          type: 'ETH' as const
+        }))
+      }
+    } else if (networkId === 'celo') {
+      // Use Celo explorer API for Alfajores testnet
+      const response = await fetch(
+        `${API_ENDPOINTS.CELO.ALFAJORES_TESTNET.CELOSCAN_API}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc`
+      )
+      
+      if (!response.ok) {
+        throw new Error(`Celo API error: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      console.log('🔍 Celo API response:', data)
+      
+      if (data.result && data.result.length > 0) {
+        return data.result.map((tx: any) => ({
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to,
+          value: tx.value,
+          status: tx.txreceipt_status === '1' ? 'confirmed' : 'failed',
+          timestamp: parseInt(tx.timeStamp),
+          blockNumber: parseInt(tx.blockNumber),
+          type: 'CELO' as const
+        }))
+      }
+    }
+    
     return []
   } catch (error) {
     console.warn('Failed to fetch transactions:', error)
@@ -51,18 +192,28 @@ async function fetchTransactions(address: string): Promise<Transaction[]> {
   }
 }
 
+// Helper function to convert TRON hex address to base58
+function convertTronAddress(hexAddress: string): string {
+  // For now, return the original - in production you'd use tronweb
+  // This is a simplified approach for the demo
+  if (hexAddress.startsWith('0x')) {
+    return hexAddress
+  }
+  return hexAddress
+}
+
 export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityProps) {
-  const { loading: walletLoading, walletInfo } = useTurnkeyWallet(selectedNetwork)
+  const { loading: walletLoading, walletInfo, prices } = useTurnkeyWallet(selectedNetwork)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
 
   useEffect(() => {
     const loadTransactions = async () => {
-      if (!walletInfo?.address) return
+      if (!walletInfo?.address || !walletInfo?.networkConfig) return
 
       setTransactionsLoading(true)
       try {
-        const txs = await fetchTransactions(walletInfo.address)
+        const txs = await fetchTransactions(walletInfo.address, walletInfo.networkConfig.id)
         setTransactions(txs)
       } catch (error) {
         console.error('Error loading transactions:', error)
@@ -72,19 +223,19 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
     }
 
     loadTransactions()
-  }, [walletInfo?.address])
+  }, [walletInfo?.address, walletInfo?.networkConfig?.id])
 
   const handleViewOnExplorer = (hash: string) => {
     if (!walletInfo?.networkConfig) return
-    const explorerUrl = walletInfo.networkConfig.id === 'tron' 
-      ? `https://shasta.tronscan.org/#/transaction/${hash}`
-      : `${walletInfo.networkConfig.explorerUrl.replace('/address/', '/tx/')}${hash}`
+    const networkId = walletInfo.networkConfig.id as keyof typeof EXPLORER_URLS.TRANSACTION
+    const explorerUrl = EXPLORER_URLS.TRANSACTION[networkId]?.(hash) || `${walletInfo.networkConfig.explorerUrl.replace('/address/', '/tx/')}${hash}`
     window.open(explorerUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleViewAddressOnExplorer = (address: string) => {
     if (!walletInfo?.networkConfig) return
-    const explorerUrl = `${walletInfo.networkConfig.explorerUrl}${address}`
+    const networkId = walletInfo.networkConfig.id as keyof typeof EXPLORER_URLS.ADDRESS
+    const explorerUrl = EXPLORER_URLS.ADDRESS[networkId]?.(address) || `${walletInfo.networkConfig.explorerUrl}${address}`
     window.open(explorerUrl, '_blank', 'noopener,noreferrer')
   }
 
@@ -190,19 +341,42 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {transaction.value ? formatEther(BigInt(transaction.value)) : '0'}{' '}
+                        {(() => {
+                          if (!transaction.value || transaction.value === '0') return '0'
+                          
+                          // Handle different transaction types
+                          if (transaction.type === 'TRC20' && transaction.tokenInfo) {
+                            // TRC20 token transaction
+                            const value = parseFloat(transaction.value) / Math.pow(10, transaction.tokenInfo.decimals)
+                            return value.toFixed(transaction.tokenInfo.decimals <= 6 ? transaction.tokenInfo.decimals : 6)
+                          } else if (walletInfo?.networkConfig?.id === 'tron') {
+                            // TRON TRX uses SUN (6 decimals)
+                            const value = parseFloat(transaction.value) / Math.pow(10, 6)
+                            return value.toFixed(6)
+                          } else {
+                            // Ethereum/CELO use wei (18 decimals)
+                            return formatEther(BigInt(transaction.value))
+                          }
+                        })()} {' '}
                         <span className="text-xs text-muted-foreground">
-                          {walletInfo?.networkConfig?.symbol || 'TOKEN'}
+                          {transaction.tokenInfo?.symbol || walletInfo?.networkConfig?.symbol || 'TOKEN'}
                         </span>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         $
-                        {transaction.value && walletInfo?.networkConfig
-                          ? (
-                              parseFloat(formatEther(BigInt(transaction.value))) *
-                              walletInfo.networkConfig.mockPrice
-                            ).toFixed(2)
-                          : '0'}
+                        {(() => {
+                          if (!transaction.value || !walletInfo?.networkConfig || !prices) return '0'
+                          
+                          let tokenAmount = 0
+                          if (walletInfo.networkConfig.id === 'tron') {
+                            tokenAmount = parseFloat(transaction.value) / Math.pow(10, 6)
+                          } else {
+                            tokenAmount = parseFloat(formatEther(BigInt(transaction.value)))
+                          }
+                          
+                          const currentPrice = prices[walletInfo.networkConfig.id] || 0
+                          return (tokenAmount * currentPrice).toFixed(2)
+                        })()}
                       </div>
                     </TableCell>
                   </TableRow>

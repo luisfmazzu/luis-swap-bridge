@@ -54,9 +54,6 @@ export function PageFooter() {
                   <a href="/" className="text-foreground text-sm font-normal leading-5 hover:underline">
                     Home
                   </a>
-                  <a href="/deposit" className="text-foreground text-sm font-normal leading-5 hover:underline">
-                    Deposit
-                  </a>
                   <a href="/swap" className="text-foreground text-sm font-normal leading-5 hover:underline">
                     Swap
                   </a>
@@ -139,9 +136,6 @@ export function PageFooter() {
                   <div className="flex flex-col justify-end items-start gap-2">
                     <a href="/" className="text-foreground text-sm font-normal leading-5 hover:underline">
                       Home
-                    </a>
-                    <a href="/deposit" className="text-foreground text-sm font-normal leading-5 hover:underline">
-                      Deposit
                     </a>
                     <a href="/swap" className="text-foreground text-sm font-normal leading-5 hover:underline">
                       Swap
