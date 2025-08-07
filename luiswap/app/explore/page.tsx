@@ -9,12 +9,16 @@ import { TurnkeyDashboard } from "@/components/wallet/turnkey-dashboard"
 import { useAuth } from "@/contexts/auth-provider"
 import { useActiveWallet } from "@/lib/stores/wallet-store"
 import { Card, CardContent } from "@/components/ui/card"
-import { Wallet, AlertCircle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Wallet, AlertCircle, Network } from "lucide-react"
+import { NETWORK_CONFIGS } from "@/hooks/use-turnkey-wallet"
 
 export default function ExplorePage() {
   const { user: turnkeyUser } = useAuth()
   const activeWallet = useActiveWallet()
   const [walletType, setWalletType] = useState<'turnkey' | 'wagmi' | 'none'>('none')
+  const [selectedNetwork, setSelectedNetwork] = useState<'tron' | 'ethereum'>('tron')
 
   // Determine which wallet is active
   useEffect(() => {
@@ -35,13 +39,48 @@ export default function ExplorePage() {
       case 'turnkey':
         return (
           <div className="space-y-6">
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-4">
               <h1 className="text-3xl font-bold">Turnkey Wallet Dashboard</h1>
               <p className="text-muted-foreground">
                 Your embedded wallet powered by Turnkey
               </p>
+              
+              {/* Network Selector */}
+              <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Network className="h-4 w-4" />
+                  <span>Network:</span>
+                </div>
+                <Select 
+                  value={selectedNetwork} 
+                  onValueChange={(value: 'tron' | 'ethereum') => setSelectedNetwork(value)}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(NETWORK_CONFIGS).map(([key, config]) => (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className={`w-3 h-3 rounded-full ${
+                              config.id === 'tron' 
+                                ? 'bg-gradient-to-r from-red-500 to-orange-500'
+                                : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                            }`}
+                          />
+                          <span>{config.name}</span>
+                          <Badge variant="outline" className="text-xs ml-1">
+                            {config.testnet}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <TurnkeyDashboard />
+            <TurnkeyDashboard selectedNetwork={selectedNetwork} />
           </div>
         )
 

@@ -1,11 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useTurnkeyWallet } from '@/hooks/use-turnkey-wallet'
+import { useTurnkeyWallet, formatBalanceForDisplay, calculateUSDValue } from '@/hooks/use-turnkey-wallet'
 import { useAuth } from '@/contexts/auth-provider'
 import { CopyIcon, Wallet, ExternalLink, HandCoins } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatEther } from 'viem'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -20,22 +19,20 @@ import { Badge } from '@/components/ui/badge'
 
 interface TurnkeyWalletCardProps {
   className?: string
+  selectedNetwork?: 'tron' | 'ethereum'
 }
 
-// Mock ETH price - in production you'd use a real price feed
-const MOCK_ETH_PRICE = 3500
-
-export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
+export function TurnkeyWalletCard({ className, selectedNetwork }: TurnkeyWalletCardProps) {
   const { user } = useAuth()
-  const { loading, walletInfo, selectedWallet, error } = useTurnkeyWallet()
+  const { loading, walletInfo, selectedWallet, selectedAccount, error } = useTurnkeyWallet(selectedNetwork)
   const [usdAmount, setUsdAmount] = useState<number>(0)
 
   useEffect(() => {
-    if (walletInfo?.balance) {
-      const balanceInEther = formatEther(walletInfo.balance)
-      setUsdAmount(Number(balanceInEther) * MOCK_ETH_PRICE)
+    if (walletInfo?.balance && selectedAccount?.networkConfig) {
+      const calculatedUSD = calculateUSDValue(walletInfo.balance, selectedAccount.networkConfig)
+      setUsdAmount(calculatedUSD)
     }
-  }, [walletInfo?.balance])
+  }, [walletInfo?.balance, selectedAccount?.networkConfig])
 
   const handleCopyAddress = () => {
     if (walletInfo?.address) {
@@ -45,9 +42,8 @@ export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
   }
 
   const handleViewOnExplorer = () => {
-    if (walletInfo?.address) {
-      // Using Sepolia testnet explorer for demo
-      const explorerUrl = `https://sepolia.etherscan.io/address/${walletInfo.address}`
+    if (walletInfo?.address && selectedAccount?.networkConfig) {
+      const explorerUrl = `${selectedAccount.networkConfig.explorerUrl}${walletInfo.address}`
       window.open(explorerUrl, '_blank', 'noopener,noreferrer')
     }
   }
@@ -94,7 +90,10 @@ export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
               Turnkey Embedded Wallet
             </Badge>
             <Badge variant="outline" className="text-xs">
-              Ethereum (Sepolia)
+              {selectedAccount?.networkConfig ? 
+                `${selectedAccount.networkConfig.name} (${selectedAccount.networkConfig.testnet})` : 
+                'Unknown Network'
+              }
             </Badge>
           </div>
         </div>
@@ -140,10 +139,10 @@ export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
           <div className="text-sm text-muted-foreground">
             {loading ? (
               <Skeleton className="h-3 w-16 bg-muted-foreground/50 inline-block" />
-            ) : walletInfo?.balance ? (
-              `${parseFloat(Number(formatEther(walletInfo.balance)).toFixed(8)).toString()} ETH`
+            ) : walletInfo?.balance && selectedAccount?.networkConfig ? (
+              `${formatBalanceForDisplay(walletInfo.balance, selectedAccount.networkConfig)} ${selectedAccount.networkConfig.symbol}`
             ) : (
-              '0 ETH'
+              `0 ${selectedAccount?.networkConfig?.symbol || 'TOKEN'}`
             )}
           </div>
         </div>

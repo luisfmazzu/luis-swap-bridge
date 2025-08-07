@@ -28,11 +28,11 @@ interface Transaction {
   blockNumber?: number
 }
 
-// Mock ETH price - in production you'd use a real price feed
-const MOCK_ETH_PRICE = 3500
+// Network-aware pricing handled by NETWORK_CONFIGS
 
 interface TurnkeyActivityProps {
   className?: string
+  selectedNetwork?: 'tron' | 'ethereum'
 }
 
 // Mock function to fetch transactions - in production you'd use Alchemy or similar
@@ -51,8 +51,8 @@ async function fetchTransactions(address: string): Promise<Transaction[]> {
   }
 }
 
-export function TurnkeyActivity({ className }: TurnkeyActivityProps) {
-  const { loading: walletLoading, walletInfo } = useTurnkeyWallet()
+export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityProps) {
+  const { loading: walletLoading, walletInfo } = useTurnkeyWallet(selectedNetwork)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
 
@@ -75,12 +75,16 @@ export function TurnkeyActivity({ className }: TurnkeyActivityProps) {
   }, [walletInfo?.address])
 
   const handleViewOnExplorer = (hash: string) => {
-    const explorerUrl = `https://sepolia.etherscan.io/tx/${hash}`
+    if (!walletInfo?.networkConfig) return
+    const explorerUrl = walletInfo.networkConfig.id === 'tron' 
+      ? `https://shasta.tronscan.org/#/transaction/${hash}`
+      : `${walletInfo.networkConfig.explorerUrl.replace('/address/', '/tx/')}${hash}`
     window.open(explorerUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleViewAddressOnExplorer = (address: string) => {
-    const explorerUrl = `https://sepolia.etherscan.io/address/${address}`
+    if (!walletInfo?.networkConfig) return
+    const explorerUrl = `${walletInfo.networkConfig.explorerUrl}${address}`
     window.open(explorerUrl, '_blank', 'noopener,noreferrer')
   }
 
@@ -187,14 +191,16 @@ export function TurnkeyActivity({ className }: TurnkeyActivityProps) {
                     <TableCell>
                       <div className="font-medium">
                         {transaction.value ? formatEther(BigInt(transaction.value)) : '0'}{' '}
-                        <span className="text-xs text-muted-foreground">ETH</span>
+                        <span className="text-xs text-muted-foreground">
+                          {walletInfo?.networkConfig?.symbol || 'TOKEN'}
+                        </span>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         $
-                        {transaction.value
+                        {transaction.value && walletInfo?.networkConfig
                           ? (
                               parseFloat(formatEther(BigInt(transaction.value))) *
-                              MOCK_ETH_PRICE
+                              walletInfo.networkConfig.mockPrice
                             ).toFixed(2)
                           : '0'}
                       </div>
@@ -207,7 +213,7 @@ export function TurnkeyActivity({ className }: TurnkeyActivityProps) {
                   <TableCell colSpan={5} className="text-center py-8">
                     <div className="space-y-2">
                       <p className="text-muted-foreground">
-                        No activity yet. Send or receive ETH to see transactions here.
+                        No activity yet. Send or receive {walletInfo?.networkConfig?.symbol || 'tokens'} to see transactions here.
                       </p>
                       {walletInfo?.address && (
                         <Button 

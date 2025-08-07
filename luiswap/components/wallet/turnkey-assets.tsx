@@ -1,8 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useTurnkeyWallet } from '@/hooks/use-turnkey-wallet'
-import { formatEther } from 'viem'
+import { useTurnkeyWallet, formatBalanceForDisplay, calculateUSDValue } from '@/hooks/use-turnkey-wallet'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -15,40 +14,42 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 
-// Mock ETH price - in production you'd use a real price feed
-const MOCK_ETH_PRICE = 3500
+// Dynamic network icon component
+function NetworkIcon({ networkId, symbol, className }: { networkId: string; symbol: string; className?: string }) {
+  const getGradient = (networkId: string) => {
+    switch (networkId) {
+      case 'tron': return 'from-red-500 to-orange-500'
+      case 'ethereum': return 'from-purple-500 to-blue-500'
+      default: return 'from-gray-500 to-gray-600'
+    }
+  }
 
-// Simple Ethereum icon component
-function EthereumIcon({ className }: { className?: string }) {
   return (
-    <div className={`${className} rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-xs`}>
-      ETH
+    <div className={`${className} rounded-full bg-gradient-to-r ${getGradient(networkId)} flex items-center justify-center text-white font-bold text-xs`}>
+      {symbol.slice(0, 3).toUpperCase()}
     </div>
   )
 }
 
 interface TurnkeyAssetsProps {
   className?: string
+  selectedNetwork?: 'tron' | 'ethereum'
 }
 
-export function TurnkeyAssets({ className }: TurnkeyAssetsProps) {
-  const { loading, walletInfo } = useTurnkeyWallet()
+export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps) {
+  const { loading, walletInfo, selectedAccount } = useTurnkeyWallet(selectedNetwork)
 
   // Memoize the balance calculation
   const amount = useMemo(() => {
-    return walletInfo?.balance
-      ? parseFloat(
-          Number(formatEther(walletInfo.balance)).toFixed(8)
-        ).toString()
-      : '0'
-  }, [walletInfo?.balance])
+    if (!walletInfo?.balance || !selectedAccount?.networkConfig) return '0'
+    return formatBalanceForDisplay(walletInfo.balance, selectedAccount.networkConfig)
+  }, [walletInfo?.balance, selectedAccount?.networkConfig])
 
   // Memoize the value calculation
   const valueInUSD = useMemo(() => {
-    return (
-      Number(formatEther(walletInfo?.balance ?? BigInt(0))) * MOCK_ETH_PRICE
-    ).toFixed(2)
-  }, [walletInfo?.balance])
+    if (!walletInfo?.balance || !selectedAccount?.networkConfig) return '0.00'
+    return calculateUSDValue(walletInfo.balance, selectedAccount.networkConfig).toFixed(2)
+  }, [walletInfo?.balance, selectedAccount?.networkConfig])
 
   return (
     <Card className={className}>
@@ -69,10 +70,18 @@ export function TurnkeyAssets({ className }: TurnkeyAssetsProps) {
             <TableRow>
               <TableCell className="p-2 font-medium sm:p-4">
                 <div className="flex items-center space-x-3 text-xs sm:text-sm">
-                  <EthereumIcon className="h-8 w-8" />
+                  <NetworkIcon 
+                    networkId={selectedAccount?.networkConfig?.id || 'ethereum'}
+                    symbol={selectedAccount?.networkConfig?.symbol || 'TOKEN'}
+                    className="h-8 w-8"
+                  />
                   <div>
-                    <div className="font-medium">Ethereum</div>
-                    <div className="text-xs text-muted-foreground">Sepolia Testnet</div>
+                    <div className="font-medium">
+                      {selectedAccount?.networkConfig?.name || 'Unknown Network'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {selectedAccount?.networkConfig?.testnet || 'Unknown Testnet'}
+                    </div>
                   </div>
                 </div>
               </TableCell>
@@ -105,7 +114,9 @@ export function TurnkeyAssets({ className }: TurnkeyAssetsProps) {
                     ) : (
                       <>
                         {amount}
-                        <span className="ml-1 text-xs text-muted-foreground">ETH</span>
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          {selectedAccount?.networkConfig?.symbol || 'TOKEN'}
+                        </span>
                       </>
                     )}
                   </div>
@@ -125,19 +136,19 @@ export function TurnkeyAssets({ className }: TurnkeyAssetsProps) {
         {!loading && amount === '0' && (
           <div className="text-center py-8">
             <p className="text-muted-foreground text-sm">
-              No assets found. Get some testnet ETH from a faucet to see your balance.
+              No assets found. Get some testnet {selectedAccount?.networkConfig?.symbol || 'tokens'} from a faucet to see your balance.
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Visit{' '}
               <a 
-                href="https://sepoliafaucet.com/" 
+                href={selectedAccount?.networkConfig?.faucetUrl || '#'} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="underline hover:text-foreground"
               >
-                Sepolia Faucet
+                {selectedAccount?.networkConfig?.name || 'Network'} Faucet
               </a>
-              {' '}to get test ETH
+              {' '}to get test {selectedAccount?.networkConfig?.symbol || 'tokens'}
             </p>
           </div>
         )}

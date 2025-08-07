@@ -1,6 +1,6 @@
 "use server"
 
-import { ApiKeyStamper, TurnkeyServerClient, DEFAULT_ETHEREUM_ACCOUNTS } from "@turnkey/sdk-server"
+import { ApiKeyStamper, TurnkeyServerClient, DEFAULT_TRON_ACCOUNTS, DEFAULT_ETHEREUM_ACCOUNTS } from "@turnkey/sdk-server"
 import { OtpType } from "@turnkey/sdk-react"
 import { decode, JwtPayload } from "jsonwebtoken"
 import { getAddress } from "viem"
@@ -173,10 +173,7 @@ export async function createUserSubOrg({
         {
           apiKeyName: "Wallet Auth - Embedded Wallet",
           publicKey: wallet.publicKey,
-          curveType:
-            wallet.type === 'ethereum'
-              ? ("API_KEY_CURVE_SECP256K1" as const)
-              : ("API_KEY_CURVE_ED25519" as const),
+          curveType: ("API_KEY_CURVE_SECP256K1" as const), // Both TRON and Ethereum use SECP256K1
         },
       ]
     : []
@@ -234,8 +231,11 @@ export async function createUserSubOrg({
       },
     ],
     wallet: {
-      walletName: "Default ETH Wallet",
-      accounts: DEFAULT_ETHEREUM_ACCOUNTS,
+      walletName: "Multi-Chain Wallet",
+      accounts: [
+        ...DEFAULT_TRON_ACCOUNTS,
+        ...DEFAULT_ETHEREUM_ACCOUNTS,
+      ],
     },
   })
   
