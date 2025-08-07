@@ -399,6 +399,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const expiryTime = Date.now() + parseInt(SESSION_EXPIRY) * 1000
         scheduleSessionWarning(expiryTime)
 
+        // Get wallet information to include addresses in user session
+        console.log('📧 AuthProvider: Fetching wallet information for user...')
+        let addresses: string[] = []
+        let walletId: string | undefined = undefined
+        
+        try {
+          if (indexedDbClient) {
+            const { wallets } = await indexedDbClient.getWallets()
+            console.log('📧 AuthProvider: Found wallets:', wallets.length)
+            
+            if (wallets.length > 0) {
+              const wallet = wallets[0]
+              walletId = wallet.walletId
+              
+              const { accounts } = await indexedDbClient.getWalletAccounts({
+                walletId: wallet.walletId,
+              })
+              console.log('📧 AuthProvider: Found accounts:', accounts.length)
+              
+              // Filter accounts that belong to this organization
+              const userAccounts = accounts.filter(account => account.organizationId === organizationId)
+              addresses = userAccounts.map(account => account.address)
+              console.log('📧 AuthProvider: User addresses:', addresses)
+            }
+          }
+        } catch (walletError) {
+          console.warn('⚠️ AuthProvider: Failed to fetch wallet info:', walletError)
+          // Continue without addresses - they can be fetched later by the dashboard
+        }
+
         const user: UserSession = {
           id: userId,
           name: userEmail,
@@ -407,6 +437,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             organizationId: organizationId,
             organizationName: "",
           },
+          walletId,
+          addresses,
         }
 
         setSessionInStorage(user)

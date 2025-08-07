@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { DynamicWeb3Provider } from '@/components/web3/dynamic-web3-provider'
 import { TurnkeyProvider } from '@/contexts/turnkey-provider'
 import { AuthProvider } from '@/contexts/auth-provider'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -35,6 +36,7 @@ html {
           <AuthProvider>
             <DynamicWeb3Provider>
               {children}
+              <Toaster />
             </DynamicWeb3Provider>
           </AuthProvider>
         </TurnkeyProvider>

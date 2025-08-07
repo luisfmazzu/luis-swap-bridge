@@ -58,7 +58,7 @@ function UnifiedConnectionManagerContent({
   // For Turnkey authenticated users, we'll show a Turnkey-specific wallet view
   // For regular wallet connections, use the active wallet info
   const chainId = hasTurnkeyAuth ? undefined : activeWallet?.chainId
-  const address = hasTurnkeyAuth ? turnkeyUser?.id : activeWallet?.address // Show sub-org ID as address for now
+  const address = hasTurnkeyAuth ? turnkeyUser?.addresses?.[0] : activeWallet?.address // Show actual wallet address for Turnkey users
   const isConnected = hasTurnkeyAuth || activeWallet?.isConnected || false
   
   console.log('🔄 UnifiedConnectionManager: Turnkey auth state:', hasTurnkeyAuth)
@@ -66,7 +66,9 @@ function UnifiedConnectionManagerContent({
   console.log('🔄 UnifiedConnectionManager: User object:', turnkeyUser)
 
   const handleCopyAddress = async () => {
-    const textToCopy = hasTurnkeyAuth ? turnkeyUser?.email || turnkeyUser?.id || '' : address
+    const textToCopy = hasTurnkeyAuth ? 
+      (turnkeyUser?.addresses?.[0] || turnkeyUser?.email || turnkeyUser?.id || '') : 
+      address
     if (textToCopy && navigator?.clipboard) {
       try {
         await navigator.clipboard.writeText(textToCopy)
@@ -142,7 +144,7 @@ function UnifiedConnectionManagerContent({
               )}
               <span className="font-mono text-sm">
                 {hasTurnkeyAuth ? 
-                  (turnkeyUser?.email?.split('@')[0] || 'Turnkey User') : 
+                  (turnkeyUser?.addresses?.[0] ? formatAddress(turnkeyUser.addresses[0]) : turnkeyUser?.email?.split('@')[0] || 'Turnkey User') : 
                   formatAddress(address)
                 }
               </span>
@@ -195,10 +197,21 @@ function UnifiedConnectionManagerContent({
               <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
                 {hasTurnkeyAuth ? (
                   <div className="flex-1">
-                    <div className="font-mono text-sm break-all">{turnkeyUser?.email}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      ID: {turnkeyUser?.id?.substring(0, 8)}...{turnkeyUser?.id?.slice(-4)}
-                    </div>
+                    {turnkeyUser?.addresses?.[0] ? (
+                      <>
+                        <div className="font-mono text-sm break-all">{turnkeyUser.addresses[0]}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Email: {turnkeyUser?.email}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-mono text-sm break-all">{turnkeyUser?.email}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          ID: {turnkeyUser?.id?.substring(0, 8)}...{turnkeyUser?.id?.slice(-4)}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <span className="font-mono text-sm flex-1 break-all">{address}</span>
@@ -278,7 +291,9 @@ function UnifiedConnectionManagerContent({
       >
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span className="font-mono text-sm">{turnkeyUser?.email?.split('@')[0] || 'Turnkey User'}</span>
+          <span className="font-mono text-sm">
+            {turnkeyUser?.addresses?.[0] ? formatAddress(turnkeyUser.addresses[0]) : turnkeyUser?.email?.split('@')[0] || 'Turnkey User'}
+          </span>
           <ChevronDown className="h-3 w-3" />
         </div>
       </Button>
