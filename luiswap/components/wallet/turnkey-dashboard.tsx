@@ -6,20 +6,21 @@ import { TurnkeyActivity } from './turnkey-activity'
 
 interface TurnkeyDashboardProps {
   className?: string
+  selectedNetwork?: 'tron' | 'ethereum' | 'celo'
 }
 
-export function TurnkeyDashboard({ className }: TurnkeyDashboardProps) {
+export function TurnkeyDashboard({ className, selectedNetwork }: TurnkeyDashboardProps) {
   return (
     <div className={`space-y-6 ${className || ''}`}>
       {/* Wallet Overview Card */}
-      <TurnkeyWalletCard />
+      <TurnkeyWalletCard selectedNetwork={selectedNetwork} />
       
       <div className="grid gap-6 md:grid-cols-1">
         {/* Assets Section */}
-        <TurnkeyAssets />
+        <TurnkeyAssets selectedNetwork={selectedNetwork} />
         
         {/* Activity Section */}
-        <TurnkeyActivity />
+        <TurnkeyActivity selectedNetwork={selectedNetwork} />
       </div>
     </div>
   )

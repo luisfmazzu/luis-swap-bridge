@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useTurnkeyWallet } from '@/hooks/use-turnkey-wallet'
+import { useTurnkeyWallet, formatBalanceForDisplay } from '@/hooks/use-turnkey-wallet'
+import { useWalletTokens } from '@/hooks/use-wallet-tokens'
 import { useAuth } from '@/contexts/auth-provider'
-import { CopyIcon, Wallet, ExternalLink, HandCoins } from 'lucide-react'
+import { CopyIcon, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatEther } from 'viem'
 
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -17,25 +15,25 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import { AddFundsButton } from './add-funds-button'
+import { SendReceiveDialog } from './send-receive-dialog'
+import { ImportWalletDialog } from './import-wallet-dialog'
+import { ExportWalletDialog } from './export-wallet-dialog'
 
 interface TurnkeyWalletCardProps {
   className?: string
+  selectedNetwork?: 'tron' | 'ethereum' | 'celo'
 }
 
-// Mock ETH price - in production you'd use a real price feed
-const MOCK_ETH_PRICE = 3500
-
-export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
+export function TurnkeyWalletCard({ className, selectedNetwork }: TurnkeyWalletCardProps) {
   const { user } = useAuth()
-  const { loading, walletInfo, selectedWallet, error } = useTurnkeyWallet()
-  const [usdAmount, setUsdAmount] = useState<number>(0)
-
-  useEffect(() => {
-    if (walletInfo?.balance) {
-      const balanceInEther = formatEther(walletInfo.balance)
-      setUsdAmount(Number(balanceInEther) * MOCK_ETH_PRICE)
-    }
-  }, [walletInfo?.balance])
+  const { loading, walletInfo, selectedWallet, selectedAccount, error } = useTurnkeyWallet(selectedNetwork)
+  const { 
+    loading: tokensLoading, 
+    getTotalValueUSD, 
+    hasTokens,
+    getNativeToken 
+  } = useWalletTokens(walletInfo?.address, selectedNetwork)
 
   const handleCopyAddress = () => {
     if (walletInfo?.address) {
@@ -44,13 +42,6 @@ export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
     }
   }
 
-  const handleViewOnExplorer = () => {
-    if (walletInfo?.address) {
-      // Using Sepolia testnet explorer for demo
-      const explorerUrl = `https://sepolia.etherscan.io/address/${walletInfo.address}`
-      window.open(explorerUrl, '_blank', 'noopener,noreferrer')
-    }
-  }
 
   if (!user) {
     return (
@@ -78,37 +69,61 @@ export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
     )
   }
 
+  if (!loading && !walletInfo) {
+    return (
+      <Card className={className}>
+        <CardContent className="flex items-center justify-center p-8">
+          <div className="text-center space-y-2">
+            <Wallet className="h-8 w-8 mx-auto text-muted-foreground" />
+            <p className="text-muted-foreground">No account found for this network</p>
+            <p className="text-sm text-muted-foreground">Your wallet may need additional network setup</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="space-y-1">
-          <CardTitle className="font-medium">
-            {loading ? (
-              <Skeleton className="h-4 w-32 bg-muted-foreground/50" />
-            ) : (
-              selectedWallet?.walletName || 'Turnkey Wallet'
-            )}
-          </CardTitle>
-          <div className="flex items-center gap-2 mt-2 mb-4">
-            <Badge variant="secondary" className="text-xs">
-              Turnkey Embedded Wallet
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              Ethereum (Sepolia)
-            </Badge>
+      <CardHeader className="pb-2">
+        <div className="flex flex-row items-start justify-between">
+          <div className="space-y-1 flex-1">
+            <CardTitle className="font-medium">
+              {loading ? (
+                <Skeleton className="h-4 w-32 bg-muted-foreground/50" />
+              ) : (
+                selectedWallet?.walletName || 'Turnkey Wallet'
+              )}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                {selectedAccount?.networkConfig ? 
+                  `${selectedAccount.networkConfig.name} (${selectedAccount.networkConfig.testnet})` : 
+                  'Unknown Network'
+                }
+              </Badge>
+            </div>
+          </div>
+
+          {/* Desktop buttons - smaller and aligned with title */}
+          <div className="hidden lg:flex items-center gap-1.5 ml-4">
+            <AddFundsButton selectedNetwork={selectedNetwork} size="sm" variant="outline" />
+            <SendReceiveDialog selectedNetwork={selectedNetwork} />
+            <ImportWalletDialog selectedNetwork={selectedNetwork} />
+            <ExportWalletDialog selectedNetwork={selectedNetwork} />
+          </div>
+          
+          {/* Tablet buttons - below 1024px but above 800px */}
+          <div className="hidden md:flex lg:hidden items-center gap-1.5 ml-4">
+            <AddFundsButton selectedNetwork={selectedNetwork} size="sm" variant="outline" />
+            <SendReceiveDialog selectedNetwork={selectedNetwork} />
           </div>
         </div>
-
-        <div className="hidden items-center gap-2 sm:flex">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleViewOnExplorer}
-            disabled={loading || !walletInfo}
-          >
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Explorer
-          </Button>
+        
+        {/* Tablet secondary row - for import/export on medium screens */}
+        <div className="hidden md:flex lg:hidden items-center justify-end gap-1.5 mt-3">
+          <ImportWalletDialog selectedNetwork={selectedNetwork} />
+          <ExportWalletDialog selectedNetwork={selectedNetwork} />
         </div>
       </CardHeader>
       
@@ -131,19 +146,25 @@ export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
           )}
         </div>
 
-        {/* Balance */}
+        {/* Balance - Show Total Portfolio Value */}
         <div className="space-y-1">
           <div className="text-4xl font-bold">
-            ${loading ? '0.00' : usdAmount.toFixed(2)}
+            ${(loading || tokensLoading) ? '0.00' : getTotalValueUSD().toFixed(2)}
             <span className="ml-1 text-sm text-muted-foreground">USD</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            {loading ? (
+            {loading || tokensLoading ? (
               <Skeleton className="h-3 w-16 bg-muted-foreground/50 inline-block" />
-            ) : walletInfo?.balance ? (
-              `${parseFloat(Number(formatEther(walletInfo.balance)).toFixed(8)).toString()} ETH`
+            ) : hasTokens ? (
+              (() => {
+                const nativeToken = getNativeToken()
+                return nativeToken ? 
+                  `${parseFloat(nativeToken.balance).toFixed(6)} ${nativeToken.symbol}` + 
+                  (hasTokens && nativeToken ? ' + more assets' : '') :
+                  'Multiple assets'
+              })()
             ) : (
-              '0 ETH'
+              `0 ${selectedAccount?.networkConfig?.symbol || 'TOKEN'}`
             )}
           </div>
         </div>
@@ -155,17 +176,31 @@ export function TurnkeyWalletCard({ className }: TurnkeyWalletCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="sm:hidden">
-        <div className="flex w-full items-center gap-2">
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={handleViewOnExplorer}
-            disabled={loading || !walletInfo}
-          >
-            <ExternalLink className="mr-2 h-4 w-4" />
-            View on Explorer
-          </Button>
+      <CardFooter className="md:hidden">
+        <div className="space-y-3 w-full">
+          {/* Mobile layout for screens above 450px */}
+          <div className="hidden min-[450px]:block space-y-2">
+            <div className="flex w-full items-center gap-2">
+              <AddFundsButton selectedNetwork={selectedNetwork} className="flex-1" size="sm" />
+              <SendReceiveDialog selectedNetwork={selectedNetwork} />
+            </div>
+            <div className="flex w-full items-center gap-2">
+              <ImportWalletDialog selectedNetwork={selectedNetwork} />
+              <ExportWalletDialog selectedNetwork={selectedNetwork} />
+            </div>
+          </div>
+          
+          {/* Very small mobile layout for screens 450px and below */}
+          <div className="block min-[450px]:hidden space-y-2">
+            <AddFundsButton selectedNetwork={selectedNetwork} className="w-full" size="sm" />
+            <div className="flex w-full items-center gap-2">
+              <SendReceiveDialog selectedNetwork={selectedNetwork} />
+            </div>
+            <div className="flex w-full items-center gap-2">
+              <ImportWalletDialog selectedNetwork={selectedNetwork} />
+              <ExportWalletDialog selectedNetwork={selectedNetwork} />
+            </div>
+          </div>
         </div>
       </CardFooter>
     </Card>

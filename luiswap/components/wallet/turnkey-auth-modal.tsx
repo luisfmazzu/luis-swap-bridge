@@ -49,7 +49,7 @@ const emailFormSchema = z.object({
 
 type EmailFormData = z.infer<typeof emailFormSchema>
 
-type AuthStep = 'email-form' | 'email-verification' | 'success'
+type AuthStep = 'email-form' | 'success'
 
 export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthModalProps) {
   const [step, setStep] = useState<AuthStep>('email-form')
@@ -155,15 +155,13 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
     try {
       const result = await initEmailLogin(email)
       console.log('✅ TurnkeyAuthModal: Email credential request sent:', result)
-      if (!authError) {
-        // Real Turnkey implementation - email contains credential bundle link
-        setStep('email-verification')
-        console.log('📧 TurnkeyAuthModal: Moved to email verification step - user needs to click link in email')
-      } else {
-        console.error('❌ TurnkeyAuthModal: Email auth failed with error:', authError)
-      }
+      // Close modal immediately since initEmailLogin redirects to /email-auth page
+      // No need to show intermediary modal step
+      onOpenChange(false)
+      console.log('📧 TurnkeyAuthModal: Closing modal - user will be redirected to email-auth page')
     } catch (error) {
       console.error('❌ TurnkeyAuthModal: Email authentication failed:', error)
+      // Only show error state if there's an actual error
     }
   }
 
@@ -530,7 +528,6 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
         </DialogHeader>
         <div className="p-6">
           {step === 'email-form' && renderEmailForm()}
-          {step === 'email-verification' && renderEmailVerification()}
           {step === 'success' && renderSuccess()}
         </div>
       </DialogContent>

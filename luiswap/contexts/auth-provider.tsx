@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useTurnkey } from "@turnkey/sdk-react"
 import { createUserSubOrg, initEmailAuth, verifyCredentialBundle, oauth, verifyOtp, otpLogin } from "@/actions/turnkey"
+import { createPasskeyUser } from "@/actions/turnkey-auth"
 import { useWalletStore } from "@/lib/stores/wallet-store"
 import {
   getOtpIdFromStorage,
@@ -199,14 +200,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
       console.log('✅ AuthProvider: Attestation object created, credential ID:', attestation.credentialId)
 
-      // Create user sub-organization with passkey
+      // Create user sub-organization with passkey - using dedicated auth server action
       console.log('🏗️ AuthProvider: Creating user sub-organization with passkey for:', email)
-      const result = await createUserSubOrg({
-        email,
-        passkey: {
-          challenge: challengeB64,
-          attestation,
-        },
+      
+      const result = await createPasskeyUser({
+        email: email || '',
+        challenge: challengeB64,
+        attestation,
       })
       console.log('✅ AuthProvider: Sub-organization created:', result)
 

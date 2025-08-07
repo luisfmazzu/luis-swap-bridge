@@ -5,6 +5,7 @@ import { DynamicWeb3Provider } from '@/components/web3/dynamic-web3-provider'
 import { TurnkeyProvider } from '@/contexts/turnkey-provider'
 import { AuthProvider } from '@/contexts/auth-provider'
 import { Toaster } from 'sonner'
+import { Toaster as ShadcnToaster } from '@/components/ui/toaster'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -37,6 +38,7 @@ html {
             <DynamicWeb3Provider>
               {children}
               <Toaster />
+              <ShadcnToaster />
             </DynamicWeb3Provider>
           </AuthProvider>
         </TurnkeyProvider>

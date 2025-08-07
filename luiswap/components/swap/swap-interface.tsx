@@ -10,6 +10,7 @@ import { TokenSelector } from './token-selector'
 import { useSwapState } from '@/hooks/use-swap'
 import { useWeb3 } from '@/hooks/use-web3'
 import { useTokenBalance } from '@/hooks/use-token-balance'
+import { useToast } from '@/components/ui/use-toast'
 import { DynamicConnectionManager } from '@/components/web3/dynamic-connection-manager'
 import { Badge } from '@/components/ui/badge'
 import { getTokensByChain } from '@/lib/constants/tokens'
@@ -17,6 +18,7 @@ import { getChainName } from '@/lib/constants/chains'
 
 export function SwapInterface() {
   const { isConnected, chainId, address } = useWeb3()
+  const { toast } = useToast()
   const [showSettings, setShowSettings] = useState(false)
   
   const {
@@ -80,7 +82,27 @@ export function SwapInterface() {
       return
     }
     if (isSwapReady) {
-      await swap()
+      try {
+        await swap()
+        
+        // Show success toast after mock swap completes
+        toast({
+          title: "Swap successful (mock)",
+          description: `Successfully swapped ${fromAmount} ${fromToken?.symbol} for ${toAmount} ${toToken?.symbol}`,
+          duration: 5000,
+        })
+        
+        // Reset form
+        setFromAmount("")
+        
+      } catch (error) {
+        toast({
+          title: "Swap failed",
+          description: "Something went wrong with the swap",
+          variant: "destructive",
+          duration: 5000,
+        })
+      }
     }
   }
 

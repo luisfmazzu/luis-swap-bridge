@@ -1,6 +1,6 @@
 "use server"
 
-import { ApiKeyStamper, TurnkeyServerClient, DEFAULT_ETHEREUM_ACCOUNTS } from "@turnkey/sdk-server"
+import { ApiKeyStamper, TurnkeyServerClient, DEFAULT_TRON_ACCOUNTS, DEFAULT_ETHEREUM_ACCOUNTS } from "@turnkey/sdk-server"
 import { OtpType } from "@turnkey/sdk-react"
 import { decode, JwtPayload } from "jsonwebtoken"
 import { getAddress } from "viem"
@@ -78,7 +78,7 @@ console.log('✅ TurnkeyServerClient: Client created successfully')
     
     clearTimeout(testTimeout)
     console.log('✅ Turnkey API connectivity test successful')
-    console.log('🏢 Organization name:', orgInfo.organization?.organizationName || 'Unknown')
+    console.log('🏢 Organization name:', orgInfo.organizationData?.name || 'Unknown')
   } catch (testError) {
     console.error('❌ Turnkey API connectivity test failed:', testError)
     console.error('❌ This indicates invalid API keys or network issues')
@@ -173,10 +173,7 @@ export async function createUserSubOrg({
         {
           apiKeyName: "Wallet Auth - Embedded Wallet",
           publicKey: wallet.publicKey,
-          curveType:
-            wallet.type === 'ethereum'
-              ? ("API_KEY_CURVE_SECP256K1" as const)
-              : ("API_KEY_CURVE_ED25519" as const),
+          curveType: ("API_KEY_CURVE_SECP256K1" as const), // Both TRON and Ethereum use SECP256K1
         },
       ]
     : []
@@ -234,8 +231,18 @@ export async function createUserSubOrg({
       },
     ],
     wallet: {
-      walletName: "Default ETH Wallet",
-      accounts: DEFAULT_ETHEREUM_ACCOUNTS,
+      walletName: "Multi-Chain Wallet",
+      accounts: [
+        ...DEFAULT_TRON_ACCOUNTS,
+        ...DEFAULT_ETHEREUM_ACCOUNTS,
+        // CELO Alfajores Testnet account
+        {
+          curve: "CURVE_SECP256K1",
+          pathFormat: "PATH_FORMAT_BIP32",
+          path: "m/44'/52752'/0'/0/0", // CELO's coin type is 52752
+          addressFormat: "ADDRESS_FORMAT_ETHEREUM",
+        },
+      ],
     },
   })
   

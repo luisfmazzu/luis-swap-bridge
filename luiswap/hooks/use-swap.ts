@@ -131,6 +131,15 @@ export function useSwap() {
     setIsSwapping(true)
 
     try {
+      // Mock swap - simulate success
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Simulate successful swap - in real implementation this would come from transaction
+      console.log(`🔄 Mock swap: ${fromAmount} ${fromToken.symbol} → ${toToken.symbol}`)
+      
+      setIsSwapping(false)
+
+      /* COMMENTED OUT - Real swap implementation
       const amountWei = parseUnits(fromAmount, fromToken.decimals)
 
       const swapData = await dexAggregator.getSwap({
@@ -149,11 +158,12 @@ export function useSwap() {
         gas: BigInt(swapData.tx.gas),
         chainId,
       })
+      */
     } catch (error) {
       setIsSwapping(false)
       throw handleDexError(error)
     }
-  }, [address, chainId, executeSwap])
+  }, [address, chainId]) // Removed executeSwap from dependencies since we're not using it
 
   // Reset swapping state when transaction is confirmed or fails
   const resetSwapState = useCallback(() => {
@@ -190,6 +200,21 @@ export function useSwapState() {
     enabled: !!fromToken && !!toToken && !!fromAmount,
   })
 
+  // Get 1inch router address for current chain
+  const get1InchRouter = useCallback((chainId: number): Address => {
+    // 1inch router v5 addresses by chain ID
+    const routers: Record<number, Address> = {
+      1: '0x1111111254EEB25477B68fb85Ed929f73A960582',      // Ethereum Mainnet
+      137: '0x1111111254EEB25477B68fb85Ed929f73A960582',     // Polygon
+      56: '0x1111111254EEB25477B68fb85Ed929f73A960582',      // BSC
+      42161: '0x1111111254EEB25477B68fb85Ed929f73A960582',   // Arbitrum
+      10: '0x1111111254EEB25477B68fb85Ed929f73A960582',      // Optimism
+      43114: '0x1111111254EEB25477B68fb85Ed929f73A960582',   // Avalanche
+      11155111: '0x1111111254EEB25477B68fb85Ed929f73A960582', // Sepolia
+    }
+    return routers[chainId] || '0x1111111254EEB25477B68fb85Ed929f73A960582'
+  }, [])
+
   // Check token allowance
   const {
     allowance,
@@ -200,7 +225,7 @@ export function useSwapState() {
   } = useTokenAllowance({
     token: fromToken,
     owner: address,
-    spender: '0x1111111254EEB25477B68fb85Ed929f73A960582' as Address, // 1inch router v5
+    spender: fromToken ? get1InchRouter(fromToken.chainId) : undefined,
     enabled: !!fromToken && !!address,
   })
 

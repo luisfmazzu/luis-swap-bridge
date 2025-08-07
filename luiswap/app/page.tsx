@@ -8,10 +8,14 @@ import { WhyItMattersSection } from "@/components/why-it-matters-section"
 import { CTASection } from "@/components/cta-section"
 import { FooterSection } from "@/components/footer-section"
 import { AnimatedSection } from "@/components/animated-section"
+import { OAuthHandler } from "@/components/oauth-handler"
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen relative overflow-hidden w-full">
+      {/* OAuth Handler - processes OAuth callbacks */}
+      <OAuthHandler />
+      
       <div className="relative z-10 w-full">
         {/* Hero Section - Full Width with integrated DEX preview */}
         <HeroSection />
