@@ -15,7 +15,6 @@ export function OAuthHandler() {
       const oauthProvider = searchParams?.get('oauth_provider')
 
       if (googleIdToken && oauthProvider === 'google') {
-        console.log('🔵 OAuthHandler: Processing Google OAuth callback with ID token')
         
         try {
           // Clean the URL parameters first
@@ -26,7 +25,6 @@ export function OAuthHandler() {
 
           // Process the Google authentication
           await loginWithGoogle(googleIdToken)
-          console.log('✅ OAuthHandler: Google authentication completed')
           
           // Redirect to the app after successful authentication
           router.push('/swap')

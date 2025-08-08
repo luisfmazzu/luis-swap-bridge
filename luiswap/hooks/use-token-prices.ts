@@ -24,11 +24,8 @@ export function useTokenPrices() {
         setLoading(true)
         setError(null)
         
-        console.log('🔍 useTokenPrices: Fetching all token prices')
         const tokenPrices = await getAllTokenPrices()
-        
         setPrices(tokenPrices)
-        console.log('✅ useTokenPrices: Updated prices:', tokenPrices)
         
       } catch (err) {
         console.error('❌ useTokenPrices: Error fetching prices:', err)
@@ -69,11 +66,8 @@ export function useTokenPrice(token: keyof TokenPrices) {
         setLoading(true)
         setError(null)
         
-        console.log('🔍 useTokenPrice: Fetching price for', token)
         const tokenPrice = await getTokenPrice(token)
-        
         setPrice(tokenPrice)
-        console.log('✅ useTokenPrice: Updated price for', token, ':', tokenPrice)
         
       } catch (err) {
         console.error('❌ useTokenPrice: Error fetching price for', token, ':', err)

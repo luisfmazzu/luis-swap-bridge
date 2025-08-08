@@ -48,9 +48,6 @@ export const useWalletStore = create<WalletStore>()(
 
       // Wagmi actions
       setWagmiConnection: (address: string, chainId?: number) => {
-        console.log('🔗 WalletStore: Setting Wagmi connection')
-        console.log('🔗 WalletStore: Address:', address)
-        console.log('🔗 WalletStore: Chain ID:', chainId)
         set((state) => ({
           wagmi: {
             ...state.wagmi,
@@ -62,11 +59,9 @@ export const useWalletStore = create<WalletStore>()(
           activeConnection: 'wagmi',
           error: null,
         }))
-        console.log('✅ WalletStore: Wagmi connection set successfully')
       },
 
       setWagmiConnecting: (connecting: boolean) => {
-        console.log('🔄 WalletStore: Setting Wagmi connecting state:', connecting)
         set((state) => ({
           wagmi: {
             ...state.wagmi,
@@ -76,7 +71,6 @@ export const useWalletStore = create<WalletStore>()(
       },
 
       disconnectWagmi: () => {
-        console.log('❌ WalletStore: Disconnecting Wagmi wallet')
         set((state) => ({
           wagmi: {
             ...state.wagmi,
@@ -87,15 +81,10 @@ export const useWalletStore = create<WalletStore>()(
           },
           activeConnection: null,
         }))
-        console.log('✅ WalletStore: Wagmi wallet disconnected successfully')
       },
 
       // Turnkey actions
       setTurnkeyConnection: (address: string, authMethod: 'passkey' | 'email' | 'google' | 'apple' | 'facebook' | 'wallet', chainId?: number) => {
-        console.log('🔐 WalletStore: Setting Turnkey connection')
-        console.log('🔐 WalletStore: Address:', address)
-        console.log('🔐 WalletStore: Auth method:', authMethod)
-        console.log('🔐 WalletStore: Chain ID:', chainId)
         set((state) => ({
           turnkey: {
             ...state.turnkey,
@@ -108,12 +97,9 @@ export const useWalletStore = create<WalletStore>()(
           activeConnection: 'turnkey',
           error: null,
         }))
-        console.log('✅ WalletStore: Turnkey connection set successfully')
-        console.log('📊 WalletStore: Current store state:', get())
       },
 
       setTurnkeyConnecting: (connecting: boolean) => {
-        console.log('🔄 WalletStore: Setting Turnkey connecting state:', connecting)
         set((state) => ({
           turnkey: {
             ...state.turnkey,
@@ -123,7 +109,6 @@ export const useWalletStore = create<WalletStore>()(
       },
 
       disconnectTurnkey: () => {
-        console.log('❌ WalletStore: Disconnecting Turnkey wallet')
         set((state) => ({
           turnkey: {
             ...state.turnkey,
@@ -135,17 +120,14 @@ export const useWalletStore = create<WalletStore>()(
           },
           activeConnection: null,
         }))
-        console.log('✅ WalletStore: Turnkey wallet disconnected successfully')
       },
 
       // General actions
       setActiveConnection: (type: WalletType | null) => {
-        console.log('🔄 WalletStore: Setting active connection type:', type)
         set({ activeConnection: type })
       },
 
       disconnectAll: () => {
-        console.log('❌ WalletStore: Disconnecting all wallets')
         set({
           wagmi: {
             isConnected: false,
@@ -158,17 +140,14 @@ export const useWalletStore = create<WalletStore>()(
           activeConnection: null,
           error: null,
         })
-        console.log('✅ WalletStore: All wallets disconnected successfully')
       },
 
       // Error handling
       setError: (error: WalletError | null) => {
-        console.log('❌ WalletStore: Setting wallet error:', error)
         set({ error })
       },
 
       clearError: () => {
-        console.log('✅ WalletStore: Clearing wallet error')
         set({ error: null })
       },
     }),

@@ -4,6 +4,7 @@ import { ApiKeyStamper, TurnkeyServerClient } from "@turnkey/sdk-server"
 import { OtpType } from "@turnkey/sdk-react"  
 import { decode, JwtPayload } from "jsonwebtoken"
 import { getAddress } from "viem"
+import { turnkeyConfig } from "@/lib/turnkey-config"
 
 // Helper function to get initialized Turnkey client
 function getTurnkeyClient() {
@@ -14,9 +15,9 @@ function getTurnkeyClient() {
     throw new Error('Missing Turnkey API credentials. Please check your .env file.')
   }
 
-  if (!process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID) {
-    console.error('❌ FATAL: Missing NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!')
-    throw new Error('Missing NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID. Please check your .env file.')
+  if (!turnkeyConfig.organizationId) {
+    console.error('❌ FATAL: Missing organizationId in turnkey config!')
+    throw new Error('Missing organizationId in turnkey config. Please check your .env file.')
   }
 
   const stamper = new ApiKeyStamper({
@@ -25,8 +26,8 @@ function getTurnkeyClient() {
   })
 
   const client = new TurnkeyServerClient({
-    apiBaseUrl: 'https://api.turnkey.com',
-    organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID,
+    apiBaseUrl: turnkeyConfig.apiBaseUrl,
+    organizationId: turnkeyConfig.organizationId,
     stamper,
   })
   
@@ -68,7 +69,7 @@ export async function createPasskeyUser({
 
     console.log('🚀 Calling Turnkey API to create sub-organization')
     const result = await client.createSubOrganization({
-      organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
+      organizationId: turnkeyConfig.organizationId,
       subOrganizationName: subOrgName,
       rootQuorumThreshold: 1,
       rootUsers: [{

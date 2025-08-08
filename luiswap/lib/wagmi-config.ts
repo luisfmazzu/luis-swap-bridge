@@ -73,8 +73,8 @@ export const wagmiConfig = createConfig({
     metaMask({
       dappMetadata: {
         name: 'LuiSwap',
-        url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-        iconUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
+        url: process.env.NEXT_PUBLIC_APP_URL!,
+        iconUrl: `${process.env.NEXT_PUBLIC_APP_URL}/icon.png`,
       },
     }),
     // walletConnect({
@@ -95,7 +95,7 @@ export const wagmiConfig = createConfig({
     // }),
     coinbaseWallet({
       appName: 'LuiSwap',
-      appLogoUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`,
+      appLogoUrl: `${process.env.NEXT_PUBLIC_APP_URL}/icon.png`,
       // Disable analytics and telemetry to prevent 401 errors
       enableMobileWalletLink: true,
       reloadOnDisconnect: false,

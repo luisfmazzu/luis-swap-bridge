@@ -48,7 +48,6 @@ interface TurnkeyActivityProps {
 // Fetch transactions based on network type
 async function fetchTransactions(address: string, networkId: string): Promise<Transaction[]> {
   try {
-    console.log('🔍 Fetching transactions for address:', address, 'network:', networkId)
     
     if (networkId === 'tron') {
       // Fetch both TRX transactions and TRC20 token transfers
@@ -68,7 +67,6 @@ async function fetchTransactions(address: string, networkId: string): Promise<Tr
       // Process TRC20 token transfers (more important for wallet activity)
       if (trc20Response.ok) {
         const trc20Data = await trc20Response.json()
-        console.log('🔍 TRON TRC20 API response:', trc20Data)
         
         if (trc20Data.data && trc20Data.data.length > 0) {
           const trc20Transactions = trc20Data.data.slice(0, 10).map((tx: any) => ({
@@ -93,7 +91,6 @@ async function fetchTransactions(address: string, networkId: string): Promise<Tr
       // Process TRX transactions
       if (trxResponse.ok) {
         const trxData = await trxResponse.json()
-        console.log('🔍 TRON TRX API response:', trxData)
         
         if (trxData.data && trxData.data.length > 0) {
           const trxTransactions = trxData.data.slice(0, 5).map((tx: any) => {
@@ -146,7 +143,6 @@ async function fetchTransactions(address: string, networkId: string): Promise<Tr
       }
       
       const data = await response.json()
-      console.log('🔍 Etherscan API response:', data)
       
       if (data.result && data.result.length > 0) {
         return data.result.map((tx: any) => ({

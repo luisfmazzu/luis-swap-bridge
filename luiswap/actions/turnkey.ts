@@ -4,6 +4,7 @@ import { ApiKeyStamper, TurnkeyServerClient, DEFAULT_TRON_ACCOUNTS, DEFAULT_ETHE
 import { OtpType } from "@turnkey/sdk-react"
 import { decode, JwtPayload } from "jsonwebtoken"
 import { getAddress } from "viem"
+import { turnkeyConfig } from "@/lib/turnkey-config"
 
 // Log server-side initialization
 console.log('🔧 TurnkeyServerClient: Server-side initialization started')
@@ -35,8 +36,8 @@ const stamper = new ApiKeyStamper({
 console.log('✅ TurnkeyServerClient: ApiKeyStamper created successfully')
 
 console.log('🔧 TurnkeyServerClient: Initializing with config:')
-console.log('📊 API Base URL:', 'https://api.turnkey.com')
-console.log('🏢 Organization ID:', process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
+console.log('📊 API Base URL:', turnkeyConfig.apiBaseUrl)
+console.log('🏢 Organization ID:', turnkeyConfig.organizationId)
 console.log('🔑 API Public Key exists:', !!process.env.TURNKEY_API_PUBLIC_KEY)
 console.log('🔐 API Private Key exists:', !!process.env.TURNKEY_API_PRIVATE_KEY)
 if (process.env.TURNKEY_API_PUBLIC_KEY) {
@@ -51,14 +52,14 @@ if (process.env.TURNKEY_API_PRIVATE_KEY) {
 }
 
 console.log('🔧 TurnkeyServerClient: Creating TurnkeyServerClient...')
-if (!process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID) {
-  console.error('❌ FATAL: Missing NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!')
-  throw new Error('Missing NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID. Please check your .env file.')
+if (!turnkeyConfig.organizationId) {
+  console.error('❌ FATAL: Missing organizationId in turnkey config!')
+  throw new Error('Missing organizationId in turnkey config. Please check your .env file.')
 }
 
 const client = new TurnkeyServerClient({
-  apiBaseUrl: 'https://api.turnkey.com',
-  organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
+  apiBaseUrl: turnkeyConfig.apiBaseUrl,
+  organizationId: turnkeyConfig.organizationId,
   stamper,
 })
 console.log('✅ TurnkeyServerClient: Client created successfully')
@@ -73,7 +74,7 @@ console.log('✅ TurnkeyServerClient: Client created successfully')
     
     // Try a simple API call to test connectivity
     const orgInfo = await client.getOrganization({
-      organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
+      organizationId: turnkeyConfig.organizationId,
     })
     
     clearTimeout(testTimeout)
@@ -218,7 +219,7 @@ export async function createUserSubOrg({
   })
   
   const result = await client.createSubOrganization({
-    organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!, // Critical: specify parent organization
+    organizationId: turnkeyConfig.organizationId, // Critical: specify parent organization
     subOrganizationName: subOrgName,
     rootQuorumThreshold: 1,
     rootUsers: [
@@ -255,17 +256,19 @@ export async function createUserSubOrg({
     throw new Error("Failed to create sub-organization or wallet")
   }
 
-  const returnValue = {
-    organizationId: result.subOrganizationId,
-    organizationName: subOrgName,
+  const subOrg = {
+    subOrganizationId: result.subOrganizationId,
+    subOrganizationName: subOrgName,
+  }
+
+  const user = {
     userId: result.rootUserIds?.[0] || 'unknown-user',
-    username: userEmail,
-    walletId: result.wallet.walletId,
-    addresses: result.wallet.addresses,
+    userName: userEmail,
+    userEmail: userEmail,
   }
   
-  console.log('🎉 Turnkey Server Action: Returning user data:', returnValue)
-  return returnValue
+  console.log('🎉 Turnkey Server Action: Returning subOrg and user:', { subOrg, user })
+  return { subOrg, user }
 }
 
 export async function getSubOrgId(userId: string): Promise<string | null> {
@@ -285,11 +288,11 @@ export async function getSubOrgId(userId: string): Promise<string | null> {
 export async function getSubOrgIdByEmail(email: string): Promise<string | null> {
   try {
     console.log('🔍 Turnkey Server Action: Getting sub-org ID by email:', email)
-    console.log('🔍 Searching within parent organization:', process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
+    console.log('🔍 Searching within parent organization:', turnkeyConfig.organizationId)
     
     // Use Turnkey's getSubOrgIds API with email filter, scoped to our parent organization
     const result = await client.getSubOrgIds({
-      organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID!,
+      organizationId: turnkeyConfig.organizationId,
       filterType: 'EMAIL',
       filterValue: email,
     })
@@ -351,7 +354,7 @@ export async function initEmailAuth({
         console.log('🏗️ No existing sub-org found, creating new user sub-organization...')
         // Following docs: Create user sub-organization first
         const result = await createUserSubOrg({ email })
-        organizationId = result.organizationId
+        organizationId = result.subOrg.subOrganizationId
         console.log('✅ Created new sub-org:', organizationId)
       }
     } catch (subOrgError) {
@@ -360,7 +363,7 @@ export async function initEmailAuth({
       console.log('🏗️ Sub-org lookup failed, attempting to create new sub-org as fallback...')
       try {
         const result = await createUserSubOrg({ email })
-        organizationId = result.organizationId
+        organizationId = result.subOrg.subOrganizationId
         console.log('✅ Created fallback sub-org:', organizationId)
       } catch (createError) {
         console.error('❌ Failed to create fallback sub-org:', createError)
@@ -469,7 +472,7 @@ export async function otpLogin({
         console.log('🏗️ No existing sub-org found, creating new one...')
         // Create sub-org now, after successful OTP verification
         const newUser = await createUserSubOrg({ email })
-        subOrgId = newUser.organizationId
+        subOrgId = newUser.subOrg.subOrganizationId
         console.log('✅ Created new sub-org:', subOrgId)
       }
     } catch (subOrgError) {
@@ -478,7 +481,7 @@ export async function otpLogin({
       console.log('🏗️ Attempting to create fresh sub-org as fallback...')
       try {
         const newUser = await createUserSubOrg({ email })
-        subOrgId = newUser.organizationId
+        subOrgId = newUser.subOrg.subOrganizationId
         console.log('✅ Created fallback sub-org:', subOrgId)
       } catch (createError) {
         console.error('❌ Failed to create fallback sub-org:', createError)
