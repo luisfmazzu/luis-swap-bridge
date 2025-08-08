@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useTurnkeyWallet, formatBalanceForDisplay } from '@/hooks/use-turnkey-wallet'
-import { useTurnkey } from '@turnkey/sdk-react'
+import { useUnifiedTurnkey } from '@/hooks/use-unified-turnkey'
 import { useAuth } from '@/contexts/auth-provider'
 import {
   AlertCircle,
@@ -48,7 +48,7 @@ interface SendReceiveDialogProps {
 
 export function SendReceiveDialog({ selectedNetwork }: SendReceiveDialogProps) {
   const { walletInfo, selectedAccount } = useTurnkeyWallet(selectedNetwork)
-  const { indexedDbClient } = useTurnkey()
+  const { indexedDbClient } = useUnifiedTurnkey()
   const { user } = useAuth()
   const isMobile = useIsMobile()
   const isDesktop = !isMobile

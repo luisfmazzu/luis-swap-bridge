@@ -12,13 +12,10 @@ import { SessionType } from "@turnkey/sdk-browser"
 import { uncompressRawPublicKey } from "@turnkey/crypto"
 import { toHex } from "viem"
 import { createUserSubOrg, initEmailAuth, verifyCredentialBundle, oauth, verifyOtp, otpLogin, getSubOrgIdByEmail } from "@/actions/turnkey"
-import { useWalletStore } from "@/lib/stores/wallet-store"
 import {
   getOtpIdFromStorage,
   removeOtpIdFromStorage,
   setOtpIdInStorage,
-  setSessionInStorage,
-  removeSessionFromStorage,
 } from "@/lib/storage"
 import { Email, UserSession } from "@/types/turnkey"
 
@@ -32,6 +29,7 @@ type AuthActionType =
   | { type: "LOADING"; payload: boolean }
   | { type: "ERROR"; payload: string }
   | { type: "LOGOUT" }
+  | { type: "INJECT_RESTORED_SESSION"; payload: UserSession }
 
 interface AuthState {
   loading: boolean
@@ -61,6 +59,8 @@ function authReducer(state: AuthState, action: AuthActionType): AuthState {
       return { ...state, loading: false, error: "" }
     case "LOGOUT":
       return { ...state, user: null, loading: false, error: "" }
+    case "INJECT_RESTORED_SESSION":
+      return { ...state, user: action.payload, loading: false, error: "" }
     default:
       return state
   }
@@ -77,6 +77,7 @@ interface AuthContextType {
   loginWithFacebook: (credential: string) => Promise<void>
   loginWithWallet: () => Promise<void>
   logout: () => Promise<void>
+  injectRestoredSession: (session: UserSession) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -89,7 +90,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState)
   const router = useRouter()
   const { passkeyClient, indexedDbClient, turnkey } = useTurnkey()
-  const { setTurnkeyConnection, disconnectTurnkey } = useWalletStore()
 
   // IndexedDB waits for auth operations to happen
   // Session management is handled by useUser hook
@@ -146,11 +146,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         dispatch({ type: "PASSKEY", payload: userSession })
-        
-        // Update wallet store with Turnkey connection
-        if (addresses.length > 0) {
-          setTurnkeyConnection(addresses[0], 'passkey')
-        }
 
         router.push("/swap")
       } else {
@@ -193,7 +188,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             },
           }
 
-          setSessionInStorage(userSession)
+          // Note: Session storage now handled by UnifiedWalletProvider
           
           router.push("/swap")
         }
@@ -273,11 +268,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       dispatch({ type: "COMPLETE_EMAIL_AUTH", payload: user })
-      
-      // Update wallet store with Turnkey connection
-      if (user.addresses && user.addresses.length > 0) {
-        setTurnkeyConnection(user.addresses[0], 'email')
-      }
     } catch (error) {
       console.error('❌ AuthProvider: Email verification failed:', error)
       if (error instanceof Error) {
@@ -379,14 +369,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           addresses,
         }
 
-        setSessionInStorage(user)
+        // Note: Session storage now handled by UnifiedWalletProvider
 
         dispatch({ type: "COMPLETE_EMAIL_AUTH", payload: user })
-        
-        // Update wallet store with Turnkey connection
-        if (user.addresses && user.addresses.length > 0) {
-          setTurnkeyConnection(user.addresses[0], 'email')
-        }
 
         router.push("/swap")
       } catch (error: any) {
@@ -530,11 +515,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       dispatch({ type: "WALLET_AUTH", payload: user })
       
-      // Update wallet store with Turnkey connection
-      if (user.addresses && user.addresses.length > 0) {
-        setTurnkeyConnection(user.addresses[0], 'wallet')
-      }
-      
     } catch (error) {
       console.error('❌ AuthProvider: Wallet login failed:', error)
       if (error instanceof Error) {
@@ -550,15 +530,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await turnkey?.logout()
     await indexedDbClient?.clear()
     
-    // Clear wallet store
-    disconnectTurnkey()
-    
-    // Clear local storage
-    removeSessionFromStorage()
+    // Clear local storage (session storage handled by UnifiedWalletProvider)
     removeOtpIdFromStorage()
     
     dispatch({ type: "LOGOUT" })
     router.push("/")
+  }
+
+  const injectRestoredSession = (session: UserSession) => {
+    dispatch({ type: "INJECT_RESTORED_SESSION", payload: session })
   }
 
   return (
@@ -574,6 +554,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         loginWithFacebook,
         loginWithWallet,
         logout,
+        injectRestoredSession,
       }}
     >
       {children}

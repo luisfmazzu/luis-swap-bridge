@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { ArrowUpDown, Settings, AlertTriangle, Loader2 } from 'lucide-react'
 import { TokenSelector } from './token-selector'
 import { useSwapState } from '@/hooks/use-swap'
-import { useWeb3 } from '@/hooks/use-web3'
+import { useWalletConnection } from '@/contexts/unified-wallet-provider'
 import { useTokenBalance } from '@/hooks/use-token-balance'
 import { useToast } from '@/components/ui/use-toast'
 import { DynamicConnectionManager } from '@/components/web3/dynamic-connection-manager'
@@ -18,7 +18,7 @@ import { getChainName } from '@/lib/constants/chains'
 import { handleNumericInputChange } from '@/lib/input-validation'
 
 export function SwapInterface() {
-  const { isConnected, chainId, address } = useWeb3()
+  const { isConnected, isInitializing, chainId, address } = useWalletConnection()
   const { toast } = useToast()
   const [showSettings, setShowSettings] = useState(false)
   

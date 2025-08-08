@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTurnkeyWallet } from '@/hooks/use-turnkey-wallet'
+import { useUnifiedTurnkey } from '@/hooks/use-unified-turnkey'
 import { ArrowDownIcon, ArrowUpIcon, LoaderIcon, ExternalLink } from 'lucide-react'
 import { formatEther } from 'viem'
 import { formatTokenBalanceMobile } from '@/lib/token-utils'

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,13 +17,12 @@ import {
   Copy, 
   ExternalLink, 
   LogOut, 
-  AlertTriangle 
+  AlertTriangle,
+  Loader2
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useWeb3 } from '@/hooks/use-web3'
-import { useActiveWallet, useWalletStore } from '@/lib/stores/wallet-store'
+import { useUnifiedWallet, useWalletConnection, useWalletActions } from '@/contexts/unified-wallet-provider'
 import { useAuth } from '@/contexts/auth-provider'
-import { useUser } from '@/hooks/use-user'
 import { getChainName, getChainColor } from '@/lib/constants/chains'
 import { WalletSelectionModal } from './wallet-selection-modal'
 import { TurnkeyAuthModal } from './turnkey-auth-modal'
@@ -46,183 +45,141 @@ function UnifiedConnectionManagerContent({
   const [showTurnkeyAuth, setShowTurnkeyAuth] = useState(false)
   const [showTraditionalWallet, setShowTraditionalWallet] = useState(false)
   
-  const activeWallet = useActiveWallet()
-  const { disconnectAll, disconnectTurnkey } = useWalletStore()
-  const { disconnect: disconnectWagmi, currentChain, isChainSupported, formatAddress } = useWeb3()
-  const { logout, state } = useAuth()
-  const { user } = state
-  
-  // Priority logic: Turnkey authentication overrides wallet connections
-  // If user is authenticated with Turnkey, show Turnkey info regardless of Wagmi state
-  const turnkeyUser = user
-  const hasTurnkeyAuth = !!turnkeyUser
-  
-  // For Turnkey authenticated users, we'll show a Turnkey-specific wallet view
-  // For regular wallet connections, use the active wallet info
-  const chainId = hasTurnkeyAuth ? undefined : activeWallet?.chainId
-  const address = hasTurnkeyAuth ? turnkeyUser?.addresses?.[0] : activeWallet?.address // Show actual wallet address for Turnkey users
-  const isConnected = hasTurnkeyAuth || activeWallet?.isConnected || false
-  
+  // Use unified wallet state (single source of truth)
+  const { state } = useUnifiedWallet()
+  const { isConnected, isConnecting, address, connectionType, chainId } = useWalletConnection()
+  const { disconnect } = useWalletActions()
+  const { logout } = useAuth()
 
-  const handleCopyAddress = async () => {
-    const textToCopy = hasTurnkeyAuth ? 
-      (turnkeyUser?.addresses?.[0] || turnkeyUser?.email || turnkeyUser?.id || '') : 
-      address
-    if (textToCopy && navigator?.clipboard) {
+  const handleCopyAddress = useCallback(async () => {
+    if (address && navigator?.clipboard) {
       try {
-        await navigator.clipboard.writeText(textToCopy)
+        await navigator.clipboard.writeText(address)
       } catch (error) {
         console.error('Failed to copy address:', error)
       }
     }
-  }
+  }, [address])
 
-  const handleViewOnExplorer = () => {
-    if (address && currentChain?.blockExplorerUrls?.[0]) {
-      const explorerUrl = `${currentChain.blockExplorerUrls[0]}/address/${address}`
+  const handleViewOnExplorer = useCallback(() => {
+    if (address && state.wagmiChainId) {
+      const chainInfo = getChainName(state.wagmiChainId)
+      // This would need to be implemented based on chain info
+      const explorerUrl = `https://etherscan.io/address/${address}`
       window.open(explorerUrl, '_blank', 'noopener,noreferrer')
     }
-  }
+  }, [address, state.wagmiChainId])
 
-  const handleDisconnect = () => {
-    // Priority: If Turnkey user is authenticated, log them out
-    if (hasTurnkeyAuth) {
+  const handleDisconnect = useCallback(() => {
+    if (connectionType === 'turnkey') {
       logout()
-    } else if (activeWallet?.type === 'wagmi') {
-      disconnectWagmi()
-    } else if (activeWallet?.type === 'turnkey') {
-      disconnectTurnkey()
     } else {
-      // Fallback: disconnect all
-      disconnectAll()
+      // Disconnect wagmi wallet - unified provider will sync state
+      disconnect()
     }
     setShowWalletInfo(false)
-  }
+  }, [connectionType, logout, disconnect])
 
-  const handleWalletSelectionClose = () => {
+  // Modal handlers
+  const handleWalletSelectionClose = useCallback(() => {
     setShowWalletSelection(false)
-  }
+  }, [])
 
-  const handleSelectTurnkey = () => {
+  const handleSelectTurnkey = useCallback(() => {
     setShowWalletSelection(false)
     setShowTurnkeyAuth(true)
-  }
+  }, [])
 
-  const handleSelectTraditional = () => {
+  const handleSelectTraditional = useCallback(() => {
     setShowWalletSelection(false)
     setShowTraditionalWallet(true)
-  }
+  }, [])
 
-  const handleTurnkeySuccess = (address: string) => {
+  const handleTurnkeySuccess = useCallback((address: string) => {
     setShowTurnkeyAuth(false)
-    // In a real implementation, you would connect this to your wallet store
     console.log('Turnkey connected with address:', address)
-  }
+  }, [])
 
-
-  const handleTraditionalSuccess = () => {
+  const handleTraditionalSuccess = useCallback(() => {
     setShowTraditionalWallet(false)
-  }
+  }, [])
 
-  // Connected state
-  if (isConnected && address) {
-    return (
-      <Dialog open={showWalletInfo} onOpenChange={setShowWalletInfo}>
-        <DialogTrigger asChild>
-          <Button 
-            variant={variant}
-            className={`${className} ${variant === 'outline' ? 'bg-card border-border hover:bg-accent' : ''}`}
-          >
-            <div className="flex items-center gap-2">
-              {showChainInfo && chainId && (
-                <div 
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: isChainSupported ? '#10B981' : '#EF4444' }}
-                />
-              )}
-              <span className="font-mono text-sm">
-                {hasTurnkeyAuth ? 
-                  (turnkeyUser?.addresses?.[0] ? formatAddress(turnkeyUser.addresses[0]) : turnkeyUser?.email?.split('@')[0] || 'Turnkey User') : 
-                  formatAddress(address)
-                }
-              </span>
-              <ChevronDown className="h-3 w-3" />
-            </div>
-          </Button>
-        </DialogTrigger>
-        
-        <DialogContent className="bg-background border-border">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Wallet Info</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Manage your wallet connection and view account details
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Wallet Type */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Connection Type</label>
+  // Render based on unified connection status
+  switch (state.connectionStatus) {
+    case 'initializing':
+      return (
+        <Button 
+          variant={variant}
+          className={className}
+          disabled
+        >
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          Loading...
+        </Button>
+      )
+
+    case 'connected':
+      if (!address) return null // Safety check
+      
+      return (
+        <Dialog open={showWalletInfo} onOpenChange={setShowWalletInfo}>
+          <DialogTrigger asChild>
+            <Button 
+              variant={variant}
+              className={`${className} ${variant === 'outline' ? 'bg-card border-border hover:bg-accent' : ''}`}
+            >
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="border-border">
-                  {hasTurnkeyAuth ? 'Turnkey Embedded Wallet' : 
-                   activeWallet?.type === 'turnkey' ? 'Turnkey Wallet' : 'Traditional Wallet'}
-                </Badge>
-                {hasTurnkeyAuth && (
-                  <Badge variant="secondary" className="text-xs">
-                    Email Authentication
-                  </Badge>
+                {showChainInfo && chainId && (
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: '#10B981' }}
+                  />
                 )}
-                {!hasTurnkeyAuth && activeWallet?.type === 'turnkey' && 'authMethod' in activeWallet && activeWallet.authMethod && (
-                  <Badge variant="secondary" className="text-xs">
-                    {activeWallet.authMethod === 'passkey' ? 'Passkey' : 
-                     activeWallet.authMethod === 'email' ? 'Email' :
-                     activeWallet.authMethod === 'google' ? 'Google' :
-                     activeWallet.authMethod === 'apple' ? 'Apple' :
-                     activeWallet.authMethod === 'facebook' ? 'Facebook' :
-                     activeWallet.authMethod === 'wallet' ? 'Wallet Import' :
-                     activeWallet.authMethod}
-                  </Badge>
-                )}
+                <span className="font-mono text-sm">
+                  {address.slice(0, 6)}...{address.slice(-4)}
+                </span>
+                <ChevronDown className="h-3 w-3" />
               </div>
-            </div>
+            </Button>
+          </DialogTrigger>
+          
+          <DialogContent className="bg-background border-border">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">Wallet Info</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                Manage your wallet connection and view account details
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Connection Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Connection Type</label>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="border-border">
+                    {connectionType === 'turnkey' ? 'Turnkey Embedded Wallet' : 'Traditional Wallet'}
+                  </Badge>
+                  {connectionType === 'turnkey' && state.turnkeyUser && (
+                    <Badge variant="secondary" className="text-xs">
+                      {state.turnkeyUser.email ? 'Email Authentication' : 'Passkey'}
+                    </Badge>
+                  )}
+                </div>
+              </div>
 
-            {/* User Info / Address */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
-                {hasTurnkeyAuth ? 'User Account' : 'Address'}
-              </label>
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                {hasTurnkeyAuth ? (
-                  <div className="flex-1">
-                    {turnkeyUser?.addresses?.[0] ? (
-                      <>
-                        <div className="font-mono text-sm break-all">{turnkeyUser.addresses[0]}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Email: {turnkeyUser?.email}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="font-mono text-sm break-all">{turnkeyUser?.email}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          ID: {turnkeyUser?.id?.substring(0, 8)}...{turnkeyUser?.id?.slice(-4)}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
+              {/* Address */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Address</label>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
                   <span className="font-mono text-sm flex-1 break-all">{address}</span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyAddress}
-                  className="h-8 w-8 p-0 shrink-0"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                {!hasTurnkeyAuth && currentChain?.blockExplorerUrls?.[0] && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyAddress}
+                    className="h-8 w-8 p-0 shrink-0"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -231,106 +188,103 @@ function UnifiedConnectionManagerContent({
                   >
                     <ExternalLink className="h-4 w-4" />
                   </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Network */}
-            {showChainInfo && chainId && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Network</label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge
-                    variant="outline"
-                    className="border-border"
-                    style={{ 
-                      borderColor: getChainColor(chainId),
-                      color: getChainColor(chainId)
-                    }}
-                  >
-                    {getChainName(chainId)}
-                  </Badge>
-                  {!isChainSupported && (
-                    <Badge variant="destructive" className="text-xs">
-                      <AlertTriangle className="h-3 w-3 mr-1" />
-                      Unsupported
-                    </Badge>
-                  )}
                 </div>
               </div>
-            )}
 
-            {/* Disconnect */}
-            <Button
-              variant="outline"
-              onClick={handleDisconnect}
-              className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Disconnect Wallet
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
+              {/* Network */}
+              {showChainInfo && chainId && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">Network</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge
+                      variant="outline"
+                      className="border-border"
+                      style={{ 
+                        borderColor: getChainColor(chainId),
+                        color: getChainColor(chainId)
+                      }}
+                    >
+                      {getChainName(chainId)}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              {/* Disconnect */}
+              <Button
+                variant="outline"
+                onClick={handleDisconnect}
+                className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Disconnect Wallet
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )
+
+    case 'connecting':
+      return (
+        <Button 
+          variant={variant}
+          className={className}
+          disabled
+        >
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          Connecting...
+        </Button>
+      )
+
+    case 'error':
+      return (
+        <Button 
+          variant="outline"
+          className={`${className} border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground`}
+          onClick={() => setShowWalletSelection(true)}
+        >
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          Connection Error
+        </Button>
+      )
+
+    case 'disconnected':
+    default:
+      return (
+        <>
+          <Button 
+            variant={variant}
+            className={`${className} ${variant === 'default' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
+            onClick={() => setShowWalletSelection(true)}
+          >
+            <Wallet className="h-4 w-4 mr-2" />
+            Connect Wallet
+          </Button>
+
+          {/* Wallet Selection Modal */}
+          <WalletSelectionModal
+            open={showWalletSelection}
+            onOpenChange={handleWalletSelectionClose}
+            onSelectTurnkey={handleSelectTurnkey}
+            onSelectTraditional={handleSelectTraditional}
+          />
+
+          {/* Turnkey Authentication Modal */}
+          <TurnkeyAuthModal
+            open={showTurnkeyAuth}
+            onOpenChange={setShowTurnkeyAuth}
+            onSuccess={handleTurnkeySuccess}
+          />
+
+          {/* Traditional Wallet Modal */}
+          <TraditionalWalletModal
+            open={showTraditionalWallet}
+            onOpenChange={setShowTraditionalWallet}
+            onSuccess={handleTraditionalSuccess}
+          />
+        </>
+      )
   }
-
-  // Disconnected state - but don't show if Turnkey user is authenticated
-  // Turnkey authentication overrides wallet connection flow
-  if (hasTurnkeyAuth) {
-    // User is authenticated with Turnkey but wallet state hasn't updated yet
-    // This shouldn't normally happen, but show connected state as fallback
-    return (
-      <Button 
-        variant={variant}
-        className={className}
-        onClick={() => setShowWalletInfo(true)}
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span className="font-mono text-sm">
-            {turnkeyUser?.addresses?.[0] ? formatAddress(turnkeyUser.addresses[0]) : turnkeyUser?.email?.split('@')[0] || 'Turnkey User'}
-          </span>
-          <ChevronDown className="h-3 w-3" />
-        </div>
-      </Button>
-    )
-  }
-
-  return (
-    <>
-      <Button 
-        variant={variant}
-        className={`${className} ${variant === 'default' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
-        onClick={() => setShowWalletSelection(true)}
-      >
-        <Wallet className="h-4 w-4 mr-2" />
-        Connect Wallet
-      </Button>
-
-      {/* Wallet Selection Modal */}
-      <WalletSelectionModal
-        open={showWalletSelection}
-        onOpenChange={handleWalletSelectionClose}
-        onSelectTurnkey={handleSelectTurnkey}
-        onSelectTraditional={handleSelectTraditional}
-      />
-
-      {/* Turnkey Authentication Modal */}
-      <TurnkeyAuthModal
-        open={showTurnkeyAuth}
-        onOpenChange={setShowTurnkeyAuth}
-        onSuccess={handleTurnkeySuccess}
-      />
-
-      {/* Traditional Wallet Modal */}
-      <TraditionalWalletModal
-        open={showTraditionalWallet}
-        onOpenChange={setShowTraditionalWallet}
-        onSuccess={handleTraditionalSuccess}
-      />
-    </>
-  )
 }
 
 export function UnifiedConnectionManager(props: UnifiedConnectionManagerProps) {

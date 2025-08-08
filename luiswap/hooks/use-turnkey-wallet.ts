@@ -167,14 +167,63 @@ function calculateUSDValue(balance: bigint, networkConfig: NetworkConfig, price:
   return parseFloat(formattedBalance) * price
 }
 
+// Session storage helper functions
+function getWalletsFromCache(organizationId: string): TurnkeyWallet[] | null {
+  try {
+    const cacheKey = `turnkey_wallets_${organizationId}`
+    const cached = sessionStorage.getItem(cacheKey)
+    if (cached) {
+      const data = JSON.parse(cached)
+      // Check if cache is less than 5 minutes old
+      if (Date.now() - data.timestamp < 5 * 60 * 1000) {
+        return data.wallets.map((wallet: any) => ({
+          ...wallet,
+          accounts: wallet.accounts.map((account: any) => ({
+            ...account,
+            balance: account.balance ? BigInt(account.balance) : BigInt(0)
+          }))
+        }))
+      }
+    }
+  } catch (error) {
+    console.warn('Error reading wallets from cache:', error)
+  }
+  return null
+}
+
+function saveWalletsToCache(organizationId: string, wallets: TurnkeyWallet[]): void {
+  try {
+    const cacheKey = `turnkey_wallets_${organizationId}`
+    const cacheData = {
+      timestamp: Date.now(),
+      wallets: wallets.map(wallet => ({
+        ...wallet,
+        accounts: wallet.accounts.map(account => ({
+          ...account,
+          balance: account.balance?.toString() // Convert BigInt to string for serialization
+        }))
+      }))
+    }
+    sessionStorage.setItem(cacheKey, JSON.stringify(cacheData))
+  } catch (error) {
+    console.warn('Error saving wallets to cache:', error)
+  }
+}
+
 async function getWalletsWithAccounts(
   indexedDbClient: any,
   organizationId: string
 ): Promise<TurnkeyWallet[]> {
+  // First, try to get from cache
+  const cachedWallets = getWalletsFromCache(organizationId)
+  if (cachedWallets) {
+    return cachedWallets
+  }
+
   try {
     const { wallets } = await indexedDbClient.getWallets()
     
-    return await Promise.all(
+    const walletsWithAccounts = await Promise.all(
       wallets.map(async (wallet: any) => {
         try {
           const { accounts } = await indexedDbClient.getWalletAccounts({
@@ -224,8 +273,39 @@ async function getWalletsWithAccounts(
         }
       })
     )
+
+    // Save successful result to cache
+    saveWalletsToCache(organizationId, walletsWithAccounts)
+    return walletsWithAccounts
   } catch (error) {
     console.error('❌ useTurnkeyWallet: Error fetching wallets:', error)
+    
+    // On error, try to return cached data even if expired
+    const fallbackCache = getWalletsFromCache(organizationId)
+    if (fallbackCache) {
+      console.warn('⚠️ Using cached wallet data due to API error')
+      return fallbackCache
+    }
+    
+    // If no cache available, try to get expired cache
+    try {
+      const cacheKey = `turnkey_wallets_${organizationId}`
+      const cached = sessionStorage.getItem(cacheKey)
+      if (cached) {
+        const data = JSON.parse(cached)
+        console.warn('⚠️ Using expired cached wallet data due to API error')
+        return data.wallets.map((wallet: any) => ({
+          ...wallet,
+          accounts: wallet.accounts.map((account: any) => ({
+            ...account,
+            balance: account.balance ? BigInt(account.balance) : BigInt(0)
+          }))
+        }))
+      }
+    } catch (cacheError) {
+      console.warn('Error reading expired cache:', cacheError)
+    }
+    
     return []
   }
 }

@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import { DynamicWeb3Provider } from '@/components/web3/dynamic-web3-provider'
 import { TurnkeyProvider } from '@/contexts/turnkey-provider'
 import { AuthProvider } from '@/contexts/auth-provider'
+import { UnifiedWalletProvider } from '@/contexts/unified-wallet-provider'
 import { Toaster } from 'sonner'
 import { Toaster as ShadcnToaster } from '@/components/ui/toaster'
 import './globals.css'
@@ -36,9 +37,11 @@ html {
         <TurnkeyProvider>
           <AuthProvider>
             <DynamicWeb3Provider>
-              {children}
-              <Toaster />
-              <ShadcnToaster />
+              <UnifiedWalletProvider>
+                {children}
+                <Toaster />
+                <ShadcnToaster />
+              </UnifiedWalletProvider>
             </DynamicWeb3Provider>
           </AuthProvider>
         </TurnkeyProvider>
