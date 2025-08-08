@@ -1,7 +1,6 @@
 import { http, createConfig } from 'wagmi'
 import { mainnet, polygon, bsc, arbitrum, optimism, avalanche, sepolia } from 'wagmi/chains'
-import { coinbaseWallet, metaMask /*, walletConnect */ } from 'wagmi/connectors'
-// import { turnkeySimple } from '@/lib/connectors/turnkey-simple'
+import { coinbaseWallet, metaMask, walletConnect } from 'wagmi/connectors'
 
 // WalletConnect/Reown Project ID - Get this from https://cloud.walletconnect.com/
 const projectId = process.env.REOWN_PROJECT_ID || 
@@ -77,22 +76,22 @@ export const wagmiConfig = createConfig({
         iconUrl: `${process.env.NEXT_PUBLIC_APP_URL}/icon.png`,
       },
     }),
-    // walletConnect({
-    //   projectId,
-    //   metadata: {
-    //     name: 'LuiSwap',
-    //     description: 'Multichain Stablecoin DEX & Bridge Platform',
-    //     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    //     icons: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`],
-    //   },
-    //   showQrModal: true,
-    //   qrModalOptions: {
-    //     themeMode: 'dark',
-    //     themeVariables: {
-    //       '--wcm-z-index': '1000',
-    //     },
-    //   },
-    // }),
+    walletConnect({
+      projectId,
+      metadata: {
+        name: 'LuiSwap',
+        description: 'Multichain Stablecoin DEX & Bridge Platform',
+        url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        icons: [`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/icon.png`],
+      },
+      showQrModal: true,
+      qrModalOptions: {
+        themeMode: 'dark',
+        themeVariables: {
+          '--wcm-z-index': '1000',
+        },
+      },
+    }),
     coinbaseWallet({
       appName: 'LuiSwap',
       appLogoUrl: `${process.env.NEXT_PUBLIC_APP_URL}/icon.png`,

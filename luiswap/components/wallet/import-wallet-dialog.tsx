@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useTurnkey } from '@turnkey/sdk-react'
+import { useUnifiedTurnkey } from '@/hooks/use-unified-turnkey'
 import { useAuth } from '@/contexts/auth-provider'
 import { type TurnkeyIframeClient, DEFAULT_ETHEREUM_ACCOUNTS, DEFAULT_TRON_ACCOUNTS } from '@turnkey/sdk-browser'
 import { Info, Key, Loader, RectangleEllipsis, Download } from 'lucide-react'
@@ -28,7 +28,7 @@ interface ImportWalletDialogProps {
 }
 
 export function ImportWalletDialog({ children, selectedNetwork }: ImportWalletDialogProps) {
-  const { turnkey, indexedDbClient } = useTurnkey()
+  const { turnkey, indexedDbClient } = useUnifiedTurnkey()
   const { user } = useAuth()
   
   const [iframeClient, setIframeClient] = useState<TurnkeyIframeClient | null>(null)

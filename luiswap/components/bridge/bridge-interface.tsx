@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ArrowUpDown, Settings, Loader2 } from "lucide-react"
 import { ChainSelector } from "./chain-selector"
-import { useWeb3 } from "@/hooks/use-web3"
+import { useWalletConnection } from "@/contexts/unified-wallet-provider"
 import { toast as sonnerToast } from "sonner"
 import { getChainName } from "@/lib/constants/chains"
 import { handleNumericInputChange } from "@/lib/input-validation"
@@ -51,7 +51,7 @@ const setBalance = (key: string, value: string) => {
 }
 
 export function BridgeInterface() {
-  const { isConnected } = useWeb3() // Using the working pattern from swap interface
+  const { isConnected, isInitializing } = useWalletConnection() // Using unified wallet state
   
   const [fromAmount, setFromAmount] = useState("")
   const [toAmount, setToAmount] = useState("")
@@ -241,10 +241,10 @@ export function BridgeInterface() {
                     placeholder="0.0"
                     value={fromAmount}
                     onChange={(e) => handleFromAmountChange(e.target.value)}
-                    className="w-full h-12 text-base sm:text-lg bg-muted/30 border-border/50 text-foreground text-center"
+                    className="w-full h-12 text-base sm:text-lg bg-muted/30 border-border/50 text-foreground text-left"
                   />
                   {isConnected && (
-                    <div className="text-xs text-muted-foreground px-1 text-center">
+                    <div className="text-xs text-muted-foreground px-1 text-left">
                       Balance: {getCurrentBalance()} USDT
                     </div>
                   )}
@@ -305,10 +305,10 @@ export function BridgeInterface() {
                     placeholder="0.0"
                     value={toAmount}
                     onChange={(e) => handleToAmountChange(e.target.value)}
-                    className="w-full h-12 text-base sm:text-lg bg-muted/30 border-border/50 text-foreground text-center"
+                    className="w-full h-12 text-base sm:text-lg bg-muted/30 border-border/50 text-foreground text-left"
                   />
                   {isConnected && (
-                    <div className="text-xs text-muted-foreground px-1 text-center">
+                    <div className="text-xs text-muted-foreground px-1 text-left">
                       Balance: {toChainId === 3448148188 ? tronBalance : celoBalance} USDT
                     </div>
                   )}

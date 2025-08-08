@@ -5,31 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { usePortfolio, usePortfolioHistory } from "@/hooks/use-portfolio"
-import { useAccount } from "wagmi"
-import { useAuth } from "@/contexts/auth-provider"
+import { useWalletConnection } from "@/contexts/unified-wallet-provider"
 
 export function PortfolioOverview() {
-  // Try to get wagmi connection, fallback to auth provider
-  let isConnected = false
-  try {
-    const wagmiAccount = useAccount()
-    isConnected = wagmiAccount.isConnected
-  } catch (error) {
-    // Wagmi not available, fallback to auth provider
-    console.debug('Wagmi not available, using auth provider')
-  }
+  // Use unified wallet state for consistent connection status
+  const { isConnected, isInitializing, address, connectionType } = useWalletConnection()
   
-  // Also check for Turnkey authentication
-  const { state } = useAuth()
-  const { user: turnkeyUser } = state
-  const hasTurnkeyAuth = !!turnkeyUser
-  
-  // Consider connected if either wagmi is connected OR user is authenticated with Turnkey
-  const effectivelyConnected = isConnected || hasTurnkeyAuth
   const { data: portfolio, isLoading: isLoadingPortfolio } = usePortfolio()
   const { data: history, isLoading: isLoadingHistory } = usePortfolioHistory(7)
 
-  if (!effectivelyConnected) {
+  if (!isConnected) {
     return (
       <Card className="bg-card border-border">
         <CardContent className="p-6 text-center">

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { useTurnkey } from '@turnkey/sdk-react'
-import { useWalletStore } from '@/lib/stores/wallet-store'
 import { useAuth } from '@/contexts/auth-provider'
 import { useUser } from '@/hooks/use-user'
 import {
@@ -57,7 +56,6 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   
   const searchParams = useSearchParams()
   const { passkeyClient } = useTurnkey()
-  const { setTurnkeyConnection } = useWalletStore()
   const { 
     loginWithPasskey, 
     initEmailLogin, 
@@ -86,12 +84,11 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   useEffect(() => {
     if (user && user.addresses && user.addresses[0]) {
       const address = user.addresses[0]
-      setTurnkeyConnection(address, 'passkey', 1) // Default to mainnet
       setConnectedAddress(address)
       setStep('success')
       onSuccess?.(address)
     }
-  }, [user, setTurnkeyConnection, onSuccess])
+  }, [user, onSuccess])
 
   // Check for credential bundle in URL params (from email callback)
   useEffect(() => {

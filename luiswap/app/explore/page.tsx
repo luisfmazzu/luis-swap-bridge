@@ -8,7 +8,7 @@ import { TokenList } from "@/components/portfolio/token-list"
 import { TurnkeyDashboard } from "@/components/wallet/turnkey-dashboard"
 import { ExplorerButton } from "@/components/wallet/explorer-button"
 import { useAuth } from "@/contexts/auth-provider"
-import { useActiveWallet } from "@/lib/stores/wallet-store"
+import { useWalletConnection } from "@/contexts/unified-wallet-provider"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -18,7 +18,7 @@ import { NETWORK_CONFIGS } from "@/hooks/use-turnkey-wallet"
 export default function ExplorePage() {
   const { state } = useAuth()
   const { user: turnkeyUser } = state
-  const activeWallet = useActiveWallet()
+  const { isConnected, connectionType } = useWalletConnection()
   const [walletType, setWalletType] = useState<'turnkey' | 'wagmi' | 'none'>('none')
   const [selectedNetwork, setSelectedNetwork] = useState<'tron' | 'ethereum' | 'celo'>('tron')
 
@@ -26,12 +26,12 @@ export default function ExplorePage() {
   useEffect(() => {
     if (turnkeyUser) {
       setWalletType('turnkey')
-    } else if (activeWallet?.isConnected) {
+    } else if (isConnected) {
       setWalletType('wagmi')
     } else {
       setWalletType('none')
     }
-  }, [turnkeyUser, activeWallet])
+  }, [turnkeyUser, isConnected])
 
   const renderDashboard = () => {
     switch (walletType) {
