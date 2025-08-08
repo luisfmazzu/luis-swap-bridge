@@ -37,10 +37,10 @@ export default function ExplorePage() {
     switch (walletType) {
       case 'turnkey':
         return (
-          <div className="space-y-6">
-            <div className="text-center space-y-4">
-              <h1 className="text-3xl font-bold">Turnkey Wallet Dashboard</h1>
-              <p className="text-muted-foreground">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="text-center space-y-3 sm:space-y-4">
+              <h1 className="text-2xl sm:text-3xl font-bold">Turnkey Wallet Dashboard</h1>
+              <p className="text-sm sm:text-base text-muted-foreground px-4 sm:px-0">
                 Your embedded wallet powered by Turnkey
               </p>
               
@@ -103,7 +103,7 @@ export default function ExplorePage() {
                       value={selectedNetwork} 
                       onValueChange={(value: 'tron' | 'ethereum' | 'celo') => setSelectedNetwork(value)}
                     >
-                      <SelectTrigger className="w-40">
+                      <SelectTrigger className="w-36">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -186,7 +186,7 @@ export default function ExplorePage() {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#141621" }}>
       <PageHeader />
       <main className="flex-1" style={{ backgroundColor: "#151826" }}>
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
           <div className="max-w-5xl mx-auto">
             {renderDashboard()}
           </div>

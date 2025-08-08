@@ -7,13 +7,30 @@ import { Button } from "@/components/ui/button"
 import { ExternalLink, TrendingUp, TrendingDown } from "lucide-react"
 import { usePortfolio } from "@/hooks/use-portfolio"
 import { useAccount } from "wagmi"
+import { useAuth } from "@/contexts/auth-provider"
 import { SUPPORTED_CHAINS } from "@/lib/constants/tokens"
 
 export function TokenList() {
-  const { isConnected } = useAccount()
+  // Try to get wagmi connection, fallback to auth provider
+  let isConnected = false
+  try {
+    const wagmiAccount = useAccount()
+    isConnected = wagmiAccount.isConnected
+  } catch (error) {
+    // Wagmi not available, fallback to auth provider
+    console.debug('Wagmi not available, using auth provider')
+  }
+  
+  // Also check for Turnkey authentication
+  const { state } = useAuth()
+  const { user: turnkeyUser } = state
+  const hasTurnkeyAuth = !!turnkeyUser
+  
+  // Consider connected if either wagmi is connected OR user is authenticated with Turnkey
+  const effectivelyConnected = isConnected || hasTurnkeyAuth
   const { data: portfolio, isLoading } = usePortfolio()
 
-  if (!isConnected) {
+  if (!effectivelyConnected) {
     return (
       <Card className="bg-card border-border">
         <CardContent className="p-6 text-center">

@@ -53,6 +53,7 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   const [userEmail, setUserEmail] = useState('')
   const [otpId, setOtpId] = useState('')
   const [connectedAddress, setConnectedAddress] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   
   const searchParams = useSearchParams()
   const { passkeyClient } = useTurnkey()
@@ -118,6 +119,7 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
       setUserEmail('')
       setOtpId('')
       setConnectedAddress('')
+      setErrorMessage('')
       form.reset()
     }
   }, [open, form])
@@ -127,6 +129,7 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
     setUserEmail('')
     setOtpId('')
     setConnectedAddress('')
+    setErrorMessage('')
     form.reset()
     onOpenChange(false)
   }
@@ -160,6 +163,9 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   }
 
   const handleGoogleAuth = async () => {
+    setErrorMessage('Google Sign In is currently under development. Please use email authentication instead.')
+    
+    /* COMMENTED OUT - Google OAuth implementation
     try {
       // Redirect to Google OAuth
       const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -183,9 +189,13 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
     } catch (error) {
       console.error('❌ TurnkeyAuthModal: Google authentication failed:', error)
     }
+    */
   }
 
   const handleAppleAuth = async () => {
+    setErrorMessage('Apple Sign In is currently under development. Please use email authentication instead.')
+    
+    /* COMMENTED OUT - Apple Sign In implementation
     try {
       // Apple Sign In requires different setup - for now, show message
       alert('Apple Sign In requires additional setup. Please use email or Google authentication for now.')
@@ -197,9 +207,13 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
     } catch (error) {
       console.error('❌ TurnkeyAuthModal: Apple authentication failed:', error)
     }
+    */
   }
 
   const handleFacebookAuth = async () => {
+    setErrorMessage('Facebook Login is currently under development. Please use email authentication instead.')
+    
+    /* COMMENTED OUT - Facebook Login implementation
     try {
       // Facebook Login requires Facebook SDK - for now, show message
       alert('Facebook Login requires additional setup. Please use email or Google authentication for now.')
@@ -211,6 +225,7 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
     } catch (error) {
       console.error('❌ TurnkeyAuthModal: Facebook authentication failed:', error)
     }
+    */
   }
 
   const handleEmailVerificationSuccess = async (credentialBundle: string) => {
@@ -243,10 +258,10 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {authError && (
+        {(authError || errorMessage) && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{authError}</AlertDescription>
+            <AlertDescription>{authError || errorMessage}</AlertDescription>
           </Alert>
         )}
 

@@ -15,6 +15,7 @@ import { DynamicConnectionManager } from '@/components/web3/dynamic-connection-m
 import { Badge } from '@/components/ui/badge'
 import { getTokensByChain } from '@/lib/constants/tokens'
 import { getChainName } from '@/lib/constants/chains'
+import { handleNumericInputChange } from '@/lib/input-validation'
 
 export function SwapInterface() {
   const { isConnected, chainId, address } = useWeb3()
@@ -203,10 +204,11 @@ export function SwapInterface() {
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     placeholder="0.0"
                     value={fromAmount}
-                    onChange={(e) => setFromAmount(e.target.value)}
+                    onChange={(e) => handleNumericInputChange(e.target.value, setFromAmount)}
                     className="flex-1 h-12 text-lg bg-muted/30 border-border/50 text-foreground"
                   />
                   <TokenSelector
@@ -259,7 +261,8 @@ export function SwapInterface() {
                 <label className="text-sm text-muted-foreground">To</label>
                 <div className="flex gap-2">
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     placeholder="0.0"
                     value={toAmount}
                     readOnly
