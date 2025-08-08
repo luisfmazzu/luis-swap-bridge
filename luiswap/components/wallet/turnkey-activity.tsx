@@ -267,19 +267,19 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
 
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
         <CardTitle className="text-lg sm:text-2xl">Activity</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="flex max-h-[450px] w-full flex-col overflow-y-auto rounded-md">
+      <CardContent className="px-3 sm:px-6">
+        <ScrollArea className="flex max-h-[450px] w-full flex-col overflow-y-auto overflow-x-hidden rounded-md">
           <Table>
             <TableHeader className="sticky top-0 bg-card">
               <TableRow>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Date</TableHead>
-                <TableHead>From</TableHead>
-                <TableHead className="hidden sm:table-cell">To</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                <TableHead className="hidden sm:table-cell text-xs sm:text-sm">Date</TableHead>
+                <TableHead className="text-xs sm:text-sm">From</TableHead>
+                <TableHead className="hidden sm:table-cell text-xs sm:text-sm">To</TableHead>
+                <TableHead className="text-xs sm:text-sm">Amount</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -309,21 +309,21 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
                 // Transactions list
                 transactions.map((transaction) => (
                   <TableRow key={transaction.hash}>
-                    <TableCell>
+                    <TableCell className="p-1 sm:p-4">
                       <button
                         onClick={() => handleViewOnExplorer(transaction.hash)}
-                        className="flex items-center gap-2 capitalize hover:text-foreground/80 transition-colors"
+                        className="flex items-center gap-1 sm:gap-2 capitalize text-xs sm:text-sm"
                       >
                         {getStatusIcon(transaction.status)}
-                        {transaction.status}
+                        <span className="hidden sm:inline">{transaction.status}</span>
                       </button>
                     </TableCell>
                     <TableCell className="hidden p-1 text-xs sm:table-cell md:p-4 md:text-sm">
                       {formatDate(transaction.timestamp)}
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
+                    <TableCell className="p-1 sm:p-4 font-mono text-xs">
                       <button
-                        className="hover:text-foreground/80 transition-colors underline underline-offset-4"
+                        className="underline underline-offset-4"
                         onClick={() => handleViewAddressOnExplorer(transaction.from)}
                       >
                         {formatAddress(transaction.from)}
@@ -331,13 +331,13 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
                     </TableCell>
                     <TableCell className="hidden font-mono text-xs sm:table-cell">
                       <button
-                        className="hover:text-foreground/80 transition-colors underline underline-offset-4"
+                        className="underline underline-offset-4"
                         onClick={() => handleViewAddressOnExplorer(transaction.to)}
                       >
                         {formatAddress(transaction.to)}
                       </button>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="p-1 sm:p-4">
                       {(() => {
                         const getFormattedValue = () => {
                           if (!transaction.value || transaction.value === '0') return '0'
@@ -367,7 +367,7 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
                             label="Transaction Amount"
                             symbol={symbol}
                           >
-                            <div className="font-medium">
+                            <div className="font-medium text-xs sm:text-sm">
                               {/* Desktop: Show full precision, Mobile: Show shortened */}
                               <span className="hidden sm:inline">
                                 {fullValue}
@@ -380,7 +380,7 @@ export function TurnkeyActivity({ className, selectedNetwork }: TurnkeyActivityP
                                 {symbol}
                               </span>
                             </div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-xs sm:text-sm text-muted-foreground">
                               $
                               {(() => {
                                 if (!transaction.value || !walletInfo?.networkConfig || !prices) return '0'

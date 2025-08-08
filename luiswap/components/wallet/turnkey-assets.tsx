@@ -50,7 +50,7 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
 
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg sm:text-2xl">Assets</CardTitle>
           {hasTokens && !loading && (
@@ -61,15 +61,15 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 sm:px-6">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Asset</TableHead>
-              <TableHead className="hidden sm:table-cell">Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead className="hidden sm:table-cell">Price</TableHead>
-              <TableHead>Value (USD)</TableHead>
+              <TableHead className="text-xs sm:text-sm">Asset</TableHead>
+              <TableHead className="hidden sm:table-cell text-xs sm:text-sm">Type</TableHead>
+              <TableHead className="text-xs sm:text-sm">Amount</TableHead>
+              <TableHead className="hidden sm:table-cell text-xs sm:text-sm">Price</TableHead>
+              <TableHead className="text-xs sm:text-sm">Value (USD)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -115,15 +115,15 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
               tokens.map((token) => (
                 <TableRow key={`${token.address}-${token.symbol}`}>
                   <TableCell className="p-2 font-medium sm:p-4">
-                    <div className="flex items-center space-x-3 text-xs sm:text-sm">
+                    <div className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
                       <TokenIcon 
                         symbol={token.symbol}
                         networkId={token.network}
                         isNative={token.isNative}
-                        className="h-8 w-8"
+                        className="h-6 w-6 sm:h-8 sm:w-8"
                       />
-                      <div>
-                        <div className="font-medium">{token.name}</div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-xs sm:text-sm truncate">{token.name}</div>
                         <div className="text-xs text-muted-foreground">
                           {token.symbol}
                         </div>
@@ -137,13 +137,13 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
                     </Badge>
                   </TableCell>
                   
-                  <TableCell>
+                  <TableCell className="p-1 sm:p-4">
                     <NumberModal 
                       fullNumber={formatTokenBalance(token.balance, token.decimals, 18)}
                       label="Token Balance"
                       symbol={token.symbol}
                     >
-                      <div className="font-medium">
+                      <div className="font-medium text-xs sm:text-sm">
                         {/* Desktop: Show full precision, Mobile: Show shortened */}
                         <span className="hidden sm:inline">
                           {formatTokenBalance(token.balance, token.decimals)}
@@ -166,7 +166,7 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
                     )}
                   </TableCell>
                   
-                  <TableCell>
+                  <TableCell className="p-1 sm:p-4">
                     {token.valueUSD === -1 ? (
                       <div>
                         <Skeleton className="h-4 w-16 mb-1" />
@@ -176,7 +176,7 @@ export function TurnkeyAssets({ className, selectedNetwork }: TurnkeyAssetsProps
                       </div>
                     ) : (
                       <div>
-                        <div className="font-medium">
+                        <div className="font-medium text-xs sm:text-sm">
                           ${token.valueUSD.toFixed(2)}
                         </div>
                         {/* Mobile: show price below value */}
