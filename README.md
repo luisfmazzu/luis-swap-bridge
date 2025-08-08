@@ -2,9 +2,93 @@
 
 A modern decentralized exchange (DEX) platform frontend with beautiful UI/UX design for multi-chain token swapping, cross-chain bridging, and portfolio management. Built with Next.js, TypeScript, and modern web technologies with responsive design across all devices.
 
+## 🏆 Turnkey Challenge
+
+### ✅ Completed Features
+
+- **🔐 Turnkey Authentication System**
+  - Passkey-based authentication for secure, passwordless login
+  - Email-based authentication with OTP verification
+  - Seamless wallet creation and management
+  - Multi-network support (Ethereum, Tron, Celo)
+
+- **💰 Portfolio Management (Explore Page)**
+  - Real-time asset portfolio tracking
+  - Token balance display with USD values
+  - Transaction history and activity monitoring
+  - Network-specific wallet information
+  - Mobile-optimized card layouts for screens ≤450px
+
+- **🌉 Bridge Interface (Mock Implementation)**
+  - Cross-chain token bridge simulation
+  - Loading animations and success notifications
+  - User-friendly transfer interface
+
+- **📱 Mobile Responsiveness**
+  - Card-based interfaces for small screens
+  - Responsive navigation and components
+  - Touch-friendly interactions
+
+- **✨ Enhanced User Experience**
+  - Input validation for numeric fields
+  - Smooth animations and loading states
+  - Error handling and user feedback
+  - Clean, modern UI with Tailwind CSS
+
+### 📋 Todo List
+
+##### State Management
+- [ ] **Zustand Implementation**
+  - Replace context-based state with Zustand stores
+  - Persistent state management
+  - Improved performance with selective subscriptions
+  - Type-safe store definitions
+
+#### Turnkey Integration Enhancements
+- [ ] **OAuth Methods Implementation**
+  - Google OAuth integration
+  - Apple Sign In integration  
+  - Facebook Login integration
+  - Social login state management
+
+- [ ] **Bridge Functionality**
+  - Real cross-chain bridge implementation
+  - Multiple bridge provider integration
+  - Transaction status tracking
+  - Gas optimization for bridge transactions
+
+#### MiniPay Integration
+- [ ] **Celo MiniPay Support**
+  - MiniPay wallet detection and integration
+  - Celo network optimization
+  - Mobile-first transaction flow
+  - USDC/cUSD native support
+
+#### Advanced Features & Improvements
+
+##### Performance Optimizations
+- [ ] **Lazy Loading**
+  - Component-level code splitting
+  - Dynamic imports for heavy components
+  - Route-based lazy loading
+  - Image lazy loading optimization
+
+- [ ] **Advanced Techniques**
+  - React Query for data fetching and caching
+  - Virtual scrolling for large lists
+  - Service Worker for offline functionality
+  - Bundle size optimization
+
+##### Developer Experience
+- [ ] **Testing & Quality**
+  - Unit tests with Jest/Vitest
+  - E2E tests with Playwright
+  - Component testing with Testing Library
+  - Performance monitoring integration
+
 ## 🚧 Current Implementation Status
 
-**Frontend Complete**: The entire user interface and responsive design have been implemented and are fully functional, including:
+**Frontend Complete**: The entire user interface and responsive design have been implemented and are fully functional, including all Turnkey Challenge features above, plus:
 - Landing page with modern hero section and network statistics
 - Complete swap interface with professional trading UI  
 - Cross-chain bridge interface with route selection
@@ -215,3 +299,139 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Next.js](https://nextjs.org/) for the React framework
 - [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
 - [Framer Motion](https://www.framer.com/motion/) for smooth animations
+
+## 🔧 Installation & Setup
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm, yarn, or pnpm
+- Git
+
+### Environment Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/luisfmazzu/luis-swap-bridge.git
+   cd luis-swap-bridge/luiswap
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   pnpm install
+   # or
+   yarn install
+   ```
+
+3. **Environment Variables**
+   
+   Create a `.env.local` file in the luiswap directory:
+   
+   ```env
+   # Turnkey Configuration
+   NEXT_PUBLIC_TURNKEY_API_BASE_URL=https://api.turnkey.com
+   NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID=your_org_id
+   TURNKEY_API_PRIVATE_KEY=your_private_key
+   TURNKEY_API_PUBLIC_KEY=your_public_key
+   
+   # OAuth Configuration (when implemented)
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   
+   # API Keys for price data and bridge services
+   NEXT_PUBLIC_COINGECKO_API_KEY=your_api_key
+   NEXT_PUBLIC_1INCH_API_KEY=your_api_key
+   
+   # Network RPC URLs (optional - falls back to defaults)
+   NEXT_PUBLIC_ETHEREUM_RPC_URL=your_ethereum_rpc
+   NEXT_PUBLIC_TRON_RPC_URL=your_tron_rpc
+   NEXT_PUBLIC_CELO_RPC_URL=your_celo_rpc
+   ```
+
+4. **Turnkey Organization Setup**
+   
+   Follow the [Turnkey documentation](https://docs.turnkey.com) to:
+   - Create a Turnkey organization
+   - Generate API keys
+   - Configure allowed origins for your domain
+
+### Development
+
+1. **Start the development server**
+   ```bash
+   npm run dev
+   # or
+   pnpm dev
+   # or
+   yarn dev
+   ```
+
+2. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Build for Production
+
+```bash
+# Build the application
+npm run build
+
+# Start production server
+npm start
+```
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
+
+### Key Features & Usage
+
+#### 🔐 Authentication
+- Visit any protected page to see the Turnkey authentication modal
+- Choose between Passkey or Email authentication
+- Passkeys provide the most secure, passwordless experience
+
+#### 💱 Token Swapping
+- Navigate to `/swap`
+- Connect your wallet or authenticate with Turnkey
+- Select tokens and enter amounts
+- Execute swaps with real-time price quotes
+
+#### 🌉 Cross-Chain Bridging
+- Navigate to `/bridge`
+- Select source and destination networks
+- Enter token amounts for cross-chain transfers
+- Currently in mock mode with realistic UI/UX
+
+#### 📊 Portfolio Tracking
+- Navigate to `/explore` after authentication
+- View real-time token balances and USD values
+- Monitor transaction history
+- Switch between different networks
+
+### Troubleshooting
+
+#### Common Issues
+
+1. **Build errors related to environment variables**
+   - Ensure all required environment variables are set
+   - Check that Turnkey credentials are valid
+
+2. **Wallet connection issues**
+   - Verify network configurations in `lib/constants/chains.ts`
+   - Check browser console for Web3 errors
+
+3. **Mobile responsiveness issues**
+   - The app is optimized for screens ≥375px wide
+   - Test on actual devices for best results
+
+#### Getting Help
+
+- Check the browser console for error messages
+- Review the Turnkey documentation for authentication issues
+- Ensure all dependencies are up to date
