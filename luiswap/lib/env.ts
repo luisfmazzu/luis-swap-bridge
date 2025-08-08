@@ -8,7 +8,7 @@
 
 // Public environment variables (safe for browser)
 export const publicEnv = {
-  APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  APP_URL: process.env.NEXT_PUBLIC_APP_URL!,
 } as const
 
 // Private environment variables (server-side only)

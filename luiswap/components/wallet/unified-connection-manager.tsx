@@ -23,6 +23,7 @@ import { motion } from 'framer-motion'
 import { useWeb3 } from '@/hooks/use-web3'
 import { useActiveWallet, useWalletStore } from '@/lib/stores/wallet-store'
 import { useAuth } from '@/contexts/auth-provider'
+import { useUser } from '@/hooks/use-user'
 import { getChainName, getChainColor } from '@/lib/constants/chains'
 import { WalletSelectionModal } from './wallet-selection-modal'
 import { TurnkeyAuthModal } from './turnkey-auth-modal'
@@ -48,8 +49,9 @@ function UnifiedConnectionManagerContent({
   const activeWallet = useActiveWallet()
   const { disconnectAll, disconnectTurnkey } = useWalletStore()
   const { disconnect: disconnectWagmi, currentChain, isChainSupported, formatAddress } = useWeb3()
-  const { user, logout } = useAuth()
-
+  const { logout, state } = useAuth()
+  const { user } = state
+  
   // Priority logic: Turnkey authentication overrides wallet connections
   // If user is authenticated with Turnkey, show Turnkey info regardless of Wagmi state
   const turnkeyUser = user
@@ -61,9 +63,6 @@ function UnifiedConnectionManagerContent({
   const address = hasTurnkeyAuth ? turnkeyUser?.addresses?.[0] : activeWallet?.address // Show actual wallet address for Turnkey users
   const isConnected = hasTurnkeyAuth || activeWallet?.isConnected || false
   
-  console.log('🔄 UnifiedConnectionManager: Turnkey auth state:', hasTurnkeyAuth)
-  console.log('🔄 UnifiedConnectionManager: Active wallet:', activeWallet)
-  console.log('🔄 UnifiedConnectionManager: User object:', turnkeyUser)
 
   const handleCopyAddress = async () => {
     const textToCopy = hasTurnkeyAuth ? 
@@ -88,7 +87,6 @@ function UnifiedConnectionManagerContent({
   const handleDisconnect = () => {
     // Priority: If Turnkey user is authenticated, log them out
     if (hasTurnkeyAuth) {
-      console.log('🔄 UnifiedConnectionManager: Logging out Turnkey user')
       logout()
     } else if (activeWallet?.type === 'wagmi') {
       disconnectWagmi()
@@ -282,7 +280,6 @@ function UnifiedConnectionManagerContent({
   if (hasTurnkeyAuth) {
     // User is authenticated with Turnkey but wallet state hasn't updated yet
     // This shouldn't normally happen, but show connected state as fallback
-    console.log('⚠️ UnifiedConnectionManager: Turnkey user authenticated but not in connected state')
     return (
       <Button 
         variant={variant}

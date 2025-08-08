@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useTurnkey } from '@turnkey/sdk-react'
 import { useAuth } from '@/contexts/auth-provider'
+import { useUser } from './use-user'
 import { getAddress } from 'viem'
 import { useTokenPrices } from './use-token-prices'
 
@@ -171,10 +172,7 @@ async function getWalletsWithAccounts(
   organizationId: string
 ): Promise<TurnkeyWallet[]> {
   try {
-    console.log('🔍 useTurnkeyWallet: Fetching wallets for org:', organizationId)
-    
     const { wallets } = await indexedDbClient.getWallets()
-    console.log('🔍 useTurnkeyWallet: Found wallets:', wallets.length)
     
     return await Promise.all(
       wallets.map(async (wallet: any) => {
@@ -183,7 +181,6 @@ async function getWalletsWithAccounts(
             walletId: wallet.walletId,
           })
 
-          console.log('🔍 useTurnkeyWallet: Wallet', wallet.walletName, 'has accounts:', accounts.length)
 
           const accountsWithBalance = await Promise.all(
             accounts.map(async (account: any) => {
@@ -203,7 +200,6 @@ async function getWalletsWithAccounts(
                 
                 const balance = await fetchNetworkBalance(address, networkConfig)
                 
-                console.log('💰 useTurnkeyWallet: Account', address, 'network:', networkConfig.name, 'balance:', balance.toString())
                 
                 return {
                   ...account,
@@ -236,7 +232,8 @@ async function getWalletsWithAccounts(
 
 export function useTurnkeyWallet(selectedNetwork?: 'tron' | 'ethereum' | 'celo') {
   const { indexedDbClient } = useTurnkey()
-  const { user } = useAuth()
+  const { state: authState } = useAuth()
+  const { user } = authState
   const { prices, loading: pricesLoading } = useTokenPrices()
   
   const [state, setState] = useState<TurnkeyWalletState>({
@@ -251,50 +248,21 @@ export function useTurnkeyWallet(selectedNetwork?: 'tron' | 'ethereum' | 'celo')
   useEffect(() => {
     const fetchWallets = async () => {
       if (!user?.organization?.organizationId || !indexedDbClient) {
-        console.log('🔍 useTurnkeyWallet: Missing requirements - user org:', !!user?.organization?.organizationId, 'client:', !!indexedDbClient)
         return
       }
 
       setState(prev => ({ ...prev, loading: true, error: null }))
 
       try {
-        console.log('🔍 useTurnkeyWallet: Starting wallet fetch for user:', user.email)
-        
         const wallets = await getWalletsWithAccounts(
           indexedDbClient,
           user.organization.organizationId
         )
 
-        console.log('✅ useTurnkeyWallet: Fetched wallets successfully:', wallets.length)
-        
-        // Safe logging that handles BigInt values
-        const walletsForLogging = wallets.map(wallet => ({
-          ...wallet,
-          accounts: wallet.accounts.map(account => ({
-            ...account,
-            balance: account.balance?.toString() || '0'
-          }))
-        }))
-        console.log('🔍 useTurnkeyWallet: Wallets data structure:', walletsForLogging)
-
         // Select first wallet and account by default
         const selectedWallet = wallets.length > 0 ? wallets[0] : null
         const selectedAccount = selectedWallet?.accounts?.length && selectedWallet.accounts.length > 0 ? selectedWallet.accounts[0] : null
 
-        if (selectedWallet) {
-          console.log('🔍 useTurnkeyWallet: Selected wallet:', {
-            walletId: selectedWallet.walletId,
-            walletName: selectedWallet.walletName,
-            accountsCount: selectedWallet.accounts.length
-          })
-        }
-        if (selectedAccount) {
-          console.log('🔍 useTurnkeyWallet: Selected account:', {
-            address: selectedAccount.address,
-            network: selectedAccount.network,
-            balance: selectedAccount.balance?.toString() || '0'
-          })
-        }
 
         setState(prev => ({
           ...prev,

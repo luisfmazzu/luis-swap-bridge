@@ -131,6 +131,9 @@ CLAUDE*
 # Docs folder (per CLAUDE.md instructions)
 docs/
 
+# Demo projects (keep local, don't commit)
+demo-embedded-wallet/
+
 # IDE files
 .vscode/
 .idea/

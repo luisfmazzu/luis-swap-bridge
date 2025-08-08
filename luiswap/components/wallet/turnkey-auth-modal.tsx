@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { useTurnkey } from '@turnkey/sdk-react'
 import { useWalletStore } from '@/lib/stores/wallet-store'
 import { useAuth } from '@/contexts/auth-provider'
+import { useUser } from '@/hooks/use-user'
 import {
   Dialog,
   DialogContent,
@@ -43,11 +42,9 @@ interface TurnkeyAuthModalProps {
   onSuccess?: (address: string) => void
 }
 
-const emailFormSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-})
-
-type EmailFormData = z.infer<typeof emailFormSchema>
+type EmailFormData = {
+  email: string
+}
 
 type AuthStep = 'email-form' | 'success'
 
@@ -67,28 +64,30 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
     loginWithGoogle,
     loginWithApple,
     loginWithFacebook,
-    loading,
-    error: authError,
-    user
+    state
   } = useAuth()
+  const { loading, error: authError } = state
+  const { user } = useUser() // EXACTLY like demo: use separate useUser hook
 
   const form = useForm<EmailFormData>({
-    resolver: zodResolver(emailFormSchema),
     defaultValues: {
       email: '',
     },
+    mode: 'onChange'
   })
+  
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
 
   // Handle successful authentication from AuthProvider
   useEffect(() => {
-    console.log('🔄 TurnkeyAuthModal: User state changed:', user)
     if (user && user.addresses && user.addresses[0]) {
       const address = user.addresses[0]
-      console.log('✅ TurnkeyAuthModal: Setting Turnkey connection with address:', address)
       setTurnkeyConnection(address, 'passkey', 1) // Default to mainnet
       setConnectedAddress(address)
       setStep('success')
-      console.log('🎉 TurnkeyAuthModal: Authentication successful, calling onSuccess')
       onSuccess?.(address)
     }
   }, [user, setTurnkeyConnection, onSuccess])
@@ -98,7 +97,6 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
     if (open) {
       const credentialBundle = searchParams?.get('credential_bundle')
       if (credentialBundle) {
-        console.log('📧 TurnkeyAuthModal: Found credential bundle in URL, processing...')
         // Extract email from URL or localStorage if needed
         const storedEmail = localStorage.getItem('turnkey-auth-email')
         if (storedEmail) {
@@ -115,9 +113,7 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
 
   // Reset state when modal opens/closes
   useEffect(() => {
-    console.log('🔄 TurnkeyAuthModal: Modal state changed, open:', open)
     if (open) {
-      console.log('🔄 TurnkeyAuthModal: Resetting modal state')
       setStep('email-form')
       setUserEmail('')
       setOtpId('')
@@ -127,7 +123,6 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   }, [open, form])
 
   const handleClose = () => {
-    console.log('❌ TurnkeyAuthModal: Closing modal and resetting state')
     setStep('email-form')
     setUserEmail('')
     setOtpId('')
@@ -137,28 +132,23 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   }
 
   const handlePasskeyAuth = async (email: string) => {
-    console.log('🔐 TurnkeyAuthModal: Starting passkey authentication for:', email)
     setUserEmail(email)
     try {
       await loginWithPasskey(email)
-      console.log('✅ TurnkeyAuthModal: Passkey authentication completed successfully')
     } catch (error) {
       console.error('❌ TurnkeyAuthModal: Passkey authentication failed:', error)
     }
   }
 
   const handleEmailAuth = async (email: string) => {
-    console.log('📧 TurnkeyAuthModal: Starting real email authentication for:', email)
     setUserEmail(email)
     // Store email for later use when credential bundle returns
     localStorage.setItem('turnkey-auth-email', email)
     try {
       const result = await initEmailLogin(email)
-      console.log('✅ TurnkeyAuthModal: Email credential request sent:', result)
       // Close modal immediately since initEmailLogin redirects to /email-auth page
       // No need to show intermediary modal step
       onOpenChange(false)
-      console.log('📧 TurnkeyAuthModal: Closing modal - user will be redirected to email-auth page')
     } catch (error) {
       console.error('❌ TurnkeyAuthModal: Email authentication failed:', error)
       // Only show error state if there's an actual error
@@ -167,11 +157,9 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
 
   const handleWalletAuth = async () => {
     // Note: Wallet import not yet implemented in AuthProvider
-    console.log('💼 TurnkeyAuthModal: Wallet authentication not yet fully implemented')
   }
 
   const handleGoogleAuth = async () => {
-    console.log('🔵 TurnkeyAuthModal: Starting real Google OAuth authentication')
     try {
       // Redirect to Google OAuth
       const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -183,14 +171,13 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
       const scopes = 'openid email profile'
       const state = btoa(JSON.stringify({ provider: 'google', timestamp: Date.now() }))
       
-      const googleAuthUrl = `https://accounts.google.com/oauth/v2/auth?` +
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(googleClientId)}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `response_type=code&` +
         `scope=${encodeURIComponent(scopes)}&` +
         `state=${encodeURIComponent(state)}`
       
-      console.log('🔵 TurnkeyAuthModal: Redirecting to Google OAuth')
       window.location.href = googleAuthUrl
       
     } catch (error) {
@@ -199,11 +186,9 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   }
 
   const handleAppleAuth = async () => {
-    console.log('🍎 TurnkeyAuthModal: Starting real Apple Sign In authentication')
     try {
       // Apple Sign In requires different setup - for now, show message
       alert('Apple Sign In requires additional setup. Please use email or Google authentication for now.')
-      console.log('⚠️ TurnkeyAuthModal: Apple Sign In requires additional client-side setup')
       
       // TODO: Implement Apple Sign In JavaScript SDK
       // This requires loading AppleID.auth.js and proper configuration
@@ -215,11 +200,9 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   }
 
   const handleFacebookAuth = async () => {
-    console.log('📘 TurnkeyAuthModal: Starting real Facebook Login authentication')
     try {
       // Facebook Login requires Facebook SDK - for now, show message
       alert('Facebook Login requires additional setup. Please use email or Google authentication for now.')
-      console.log('⚠️ TurnkeyAuthModal: Facebook Login requires Facebook SDK setup')
       
       // TODO: Implement Facebook Login SDK
       // This requires loading Facebook SDK and proper app configuration
@@ -231,11 +214,8 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
   }
 
   const handleEmailVerificationSuccess = async (credentialBundle: string) => {
-    console.log('📧 TurnkeyAuthModal: Processing credential bundle from email for:', userEmail)
-    console.log('📧 TurnkeyAuthModal: Bundle preview:', credentialBundle.substring(0, 100) + '...')
     try {
       await verifyEmailLogin(credentialBundle, userEmail)
-      console.log('✅ TurnkeyAuthModal: Email verification completed successfully')
     } catch (error) {
       console.error('❌ TurnkeyAuthModal: Email verification failed:', error)
     }
@@ -275,7 +255,11 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
+              rules={{
+                required: 'Email is required',
+                validate: (value) => validateEmail(value) || 'Please enter a valid email address'
+              }}
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormControl>
                     <Input
@@ -285,7 +269,9 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  {fieldState.error && (
+                    <FormMessage>{fieldState.error.message}</FormMessage>
+                  )}
                 </FormItem>
               )}
             />
@@ -293,7 +279,7 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
             <Button
               type="button"
               className="w-full font-semibold"
-              disabled={!form.formState.isValid || loading}
+              disabled={!validateEmail(form.watch('email') || '') || loading}
               onClick={() => handlePasskeyAuth(form.getValues().email)}
             >
               {loading ? (
@@ -313,7 +299,7 @@ export function TurnkeyAuthModal({ open, onOpenChange, onSuccess }: TurnkeyAuthM
               type="button"
               variant="outline"
               className="w-full font-semibold"
-              disabled={!form.formState.isValid || loading}
+              disabled={!validateEmail(form.watch('email') || '') || loading}
               onClick={() => handleEmailAuth(form.getValues().email)}
             >
               {loading ? (

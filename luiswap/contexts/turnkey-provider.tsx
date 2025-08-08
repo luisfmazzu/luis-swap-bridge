@@ -18,12 +18,7 @@ const getRuntimeRpId = () =>
     : turnkeyConfig.passkey.rpId
 
 export function TurnkeyProvider({ children }: TurnkeyProviderProps) {
-  // Log only CLIENT-SIDE environment variables (server-side vars won't be accessible here)
-  console.log('🔧 TurnkeyProvider: Client-Side Environment Variables Check')
-  console.log('📊 NEXT_PUBLIC_TURNKEY_API_BASE_URL:', process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL)
-  console.log('🏢 NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID:', process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
-  console.log('🔑 NEXT_PUBLIC_TURNKEY_RP_ID:', process.env.NEXT_PUBLIC_TURNKEY_RP_ID)
-  console.log('ℹ️ Note: Server-side API keys (TURNKEY_API_PUBLIC_KEY, TURNKEY_API_PRIVATE_KEY) are not accessible in browser and should show as undefined')
+  // Initialize Turnkey configuration
   
   const config = {
     rpId: getRuntimeRpId(),
@@ -32,11 +27,6 @@ export function TurnkeyProvider({ children }: TurnkeyProviderProps) {
     wallet: wallet,
   }
   
-  console.log('⚙️ TurnkeyProvider: Final Config')
-  console.log('🆔 rpId:', config.rpId)
-  console.log('🌐 apiBaseUrl:', config.apiBaseUrl)  
-  console.log('🏢 defaultOrganizationId:', config.defaultOrganizationId)
-  console.log('💼 wallet initialized:', !!config.wallet)
   
   // Validate critical configuration
   if (!config.defaultOrganizationId) {
@@ -65,7 +55,6 @@ export function TurnkeyProvider({ children }: TurnkeyProviderProps) {
     )
   }
   
-  console.log('✅ TurnkeyProvider: Configuration validated, initializing SDK...')
   
   return (
     <TurnkeySDKProvider config={config}>

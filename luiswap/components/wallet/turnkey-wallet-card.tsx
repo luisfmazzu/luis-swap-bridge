@@ -26,7 +26,8 @@ interface TurnkeyWalletCardProps {
 }
 
 export function TurnkeyWalletCard({ className, selectedNetwork }: TurnkeyWalletCardProps) {
-  const { user } = useAuth()
+  const { state } = useAuth()
+  const { user } = state
   const { loading, walletInfo, selectedWallet, selectedAccount, error } = useTurnkeyWallet(selectedNetwork)
   const { 
     loading: tokensLoading, 

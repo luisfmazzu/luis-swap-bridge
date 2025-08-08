@@ -16,7 +16,8 @@ import { Wallet, AlertCircle, Network } from "lucide-react"
 import { NETWORK_CONFIGS } from "@/hooks/use-turnkey-wallet"
 
 export default function ExplorePage() {
-  const { user: turnkeyUser } = useAuth()
+  const { state } = useAuth()
+  const { user: turnkeyUser } = state
   const activeWallet = useActiveWallet()
   const [walletType, setWalletType] = useState<'turnkey' | 'wagmi' | 'none'>('none')
   const [selectedNetwork, setSelectedNetwork] = useState<'tron' | 'ethereum' | 'celo'>('tron')

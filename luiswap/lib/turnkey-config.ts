@@ -1,20 +1,6 @@
-// Environment variables with fallbacks to match demo pattern
-const NEXT_PUBLIC_TURNKEY_API_BASE_URL = process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL || 'https://api.turnkey.com'
-const NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID = process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || ''
-const NEXT_PUBLIC_TURNKEY_RP_ID = process.env.NEXT_PUBLIC_TURNKEY_RP_ID || "localhost"
-const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || ''
-
-// Log configuration values for debugging (safe to log - no sensitive data)
-console.log('🔧 TurnkeyConfig: Environment values loaded:')
-console.log('📊 NEXT_PUBLIC_TURNKEY_API_BASE_URL:', NEXT_PUBLIC_TURNKEY_API_BASE_URL)
-console.log('🏢 NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID:', NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID)
-console.log('🔑 NEXT_PUBLIC_TURNKEY_RP_ID:', NEXT_PUBLIC_TURNKEY_RP_ID)
-console.log('🌐 ALCHEMY_API_KEY exists:', !!ALCHEMY_API_KEY)
-
 export const turnkeyConfig = {
-  // Use API base URL as both base URL and organizationId endpoint
-  apiBaseUrl: NEXT_PUBLIC_TURNKEY_API_BASE_URL,
-  organizationId: NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID,
+  apiBaseUrl: process.env.NEXT_PUBLIC_TURNKEY_API_BASE_URL || 'https://api.turnkey.com',
+  organizationId: process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID || '',
   iFrame: {
     // default
     url: process.env.NEXT_PUBLIC_TURNKEY_AUTH_IFRAME_URL || "https://auth.turnkey.com",
@@ -34,7 +20,7 @@ export const turnkeyConfig = {
     },
   },
   passkey: {
-    rpId: NEXT_PUBLIC_TURNKEY_RP_ID,
+    rpId: process.env.NEXT_PUBLIC_TURNKEY_RP_ID || "localhost",
   },
-  rpcUrl: ALCHEMY_API_KEY ? `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}` : '',
+  rpcUrl: process.env.ALCHEMY_API_KEY ? `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` : '',
 }

@@ -32,33 +32,17 @@ function EmailAuthContent() {
     // Prevent multiple executions
     if (processedRef.current || isProcessing) return
     
-    console.log('📧 EmailAuth: Component mounted with params:', { userEmail, continueWith, credentialBundle: credentialBundle?.substring(0, 50) + '...' })
-    console.log('📧 EmailAuth: IndexedDB client available:', !!indexedDbClient)
-    
-    // Wait for IndexedDB client to be available (like demo does)
+    // Wait for IndexedDB client to be available
     if (userEmail && continueWith && credentialBundle && indexedDbClient && !user) {
-      console.log('📧 EmailAuth: All parameters present AND IndexedDB client ready, starting verification')
       processedRef.current = true
       setIsProcessing(true)
       
       completeEmailAuth({ userEmail, continueWith, credentialBundle }).then(() => {
-        console.log('📧 EmailAuth: Verification successful, redirecting to swap')
         setTimeout(() => router.push('/swap'), 1000) // Small delay to ensure state is updated
       }).catch((error) => {
-        console.error('❌ EmailAuth: CRITICAL - Verification failed:', error)
-        console.error('❌ EmailAuth: Error type:', typeof error)
-        console.error('❌ EmailAuth: Error message:', error?.message || 'No message')
-        console.error('❌ EmailAuth: Error stack:', error?.stack || 'No stack trace')
+        console.error('Email verification failed:', error)
         setIsProcessing(false)
         processedRef.current = false // Allow retry
-      })
-    } else {
-      console.log('📧 EmailAuth: Waiting for requirements:', { 
-        userEmail: !!userEmail, 
-        continueWith: !!continueWith, 
-        credentialBundle: !!credentialBundle,
-        indexedDbClient: !!indexedDbClient,
-        userExists: !!user
       })
     }
   }, [userEmail, continueWith, credentialBundle, indexedDbClient, user, completeEmailAuth, router, isProcessing])
@@ -66,7 +50,6 @@ function EmailAuthContent() {
   // Redirect if user is already authenticated
   useEffect(() => {
     if (user && !loading) {
-      console.log('📧 EmailAuth: User authenticated, redirecting to swap')
       router.push('/swap')
     }
   }, [user, loading, router])

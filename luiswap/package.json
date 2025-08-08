@@ -40,6 +40,8 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@tanstack/react-query": "^5.84.1",
     "@turnkey/api-key-stamper": "^0.4.7",
+    "@turnkey/crypto": "^2.4.3",
+    "@turnkey/encoding": "^0.5.0",
     "@turnkey/http": "^3.6.0",
     "@turnkey/iframe-stamper": "^2.5.0",
     "@turnkey/sdk-browser": "^5.4.1",
@@ -74,7 +76,6 @@
     "vaul": "^0.9.6",
     "viem": "^2.33.2",
     "wagmi": "^2.16.1",
-    "zod": "^3.24.1",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
